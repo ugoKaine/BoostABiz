@@ -1,0 +1,94 @@
+<%- include('../includes/header') %>
+<div class="modal-body row">
+  <div class="col-md-6">
+    <!-- Your first column here -->
+  </div>
+  <div class="col-md-6">
+    <!-- Your second column here -->
+
+    <main>
+      <%if(errorMessage){%>
+      <div class="user-message-error"><%=errorMessage%></div>
+      <%}%>
+      <div class="container mt-5">
+        <h1>Register new user</h1>
+
+        <div class="row">
+          <div class="col-sm-8">
+            <div class="card">
+              <div class="card-body">
+                <!-- Makes POST request to /createuser route -->
+                <form action="/createuser" method="POST">
+                  <div class="form-group">
+                    <label for="firstname">First Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="firstname"
+                      value="<%=oldInput.firstname%>"
+                    /><br />
+                    <label for="lastname">Last Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="lastname"
+                      value="<%=oldInput.lastname%>"
+                    /><br />
+
+                    <label for="email">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      name="username"
+                      value="<%=oldInput.username%>"
+                    /><br />
+                  </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      name="password"
+                      value="<%=oldInput.password%>"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      name="confirmPassword"
+                    />
+                  </div>
+                  <div>
+                    <label for="roles">Choose a role:</label>
+
+                    <select name="role" id="role">
+                      <option value="admin">Admin</option>
+                      <option value="user">User</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-dark">
+                    Register User
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../includes/footer') %>
+
+<!-- <div class="modal-body row">
+  <div class="col-md-6">
+    <!-- Your first column here -->
+<!-- </div> -->
+<!-- <div class="col-md-6"> -->
+
+<!-- Your second column here -->
+<!-- </div> -->
+<!-- </div> -->

@@ -1,0 +1,57 @@
+<%- include('../includes/header'); -%>
+
+<div class="split left">
+  <form id="formP" action="#">
+    <div class="form-group">
+      <label htmlFor="item-name"> Item Name</label>
+      <input list="items" type="text" name="item" id="item" />
+      <datalist id="items">
+        <option value="<%=prod%>"></option>
+      </datalist>
+    </div>
+    <div class="form-group">
+      <label htmlFor="quantity"> Quantity </label>
+      <input type="number" name="quantity" id="quantity" onkeyup="doMath()" />
+    </div>
+    <div class="form-group">
+      <label htmlFor="price"> Price/Qty </label>
+      <input type="number" name="price" id="price" onkeyup="doMath()" />
+    </div>
+    <p id="total">Total price:</p>
+    <button id="addNew" type="submit" onclick="saveArray(event)">
+      Add to List +
+    </button>
+  </form>
+</div>
+
+<div class="split right">
+  <div class="centred">
+    <p>Hope Alive Pharmacy</p>
+    <p id="date"></p>
+    <table>
+      <tr>
+        <td>Item Name</td>
+        <td>Quantity</td>
+        <td>Price/Qty(#)</td>
+        <td>Total Price(#)</td>
+      </tr>
+      <tr>
+        <td><p id="itemm"></p></td>
+        <td><p id="quantityy"></p></td>
+        <td><p id="pricee"></p></td>
+        <td><p id="totall"></p></td>
+        <td id="btn"></td>
+      </tr>
+    </table>
+    <br />
+    <p id="grandTotal"></p>
+    <p>
+      8 Aminu Ajibode Avenue, Unity estate, Abule odu bus stop Egbeda Lagos.
+      Tel:08064585484
+    </p>
+    <button type="submit" id="submitReceipt">Print Receipt</button>
+  </div>
+</div>
+
+<script src="/js/receipt.js"></script>
+<!-- <%- include('../includes/footer'); -%> -->

@@ -1,0 +1,62 @@
+<%- include('../includes/header') %>
+
+<div class="username">
+  <form action="/transactions" method="post">
+    <label for="startDate"><h4>Start Date:</h4></label>
+    <input type="date" name="startDate" />
+    <label for="endDate"><h4>End Date:</h4></label>
+    <input type="date" name="endDate" />
+
+    <label for="cashier"><h4>Cashier:</h4></label>
+    <input list="users" type="text" name="cashier" />
+    <datalist id="users">
+      <% for(let i=0;i<=u.length;i++){%>
+      <option value="<%=u[i]%>"></option>
+      <%}%>
+    </datalist>
+
+    <label for="payment"><h4>Payment Method:</h4></label>
+    <input list="paymentM" type="text" name="payment" />
+    <datalist id="paymentM">
+      <option value="Cash"></option>
+      <option value="Bank Transfer"></option>
+      <option value="P.O.S"></option>
+    </datalist>
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+</div>
+<div class="checkUser">
+  <table>
+    <tr>
+      <td>Cashier</td>
+      <td>Items Sold</td>
+      <td>Grand Total</td>
+      <td>Payment Method</td>
+      <td>Date</td>
+    </tr>
+
+    <% receipt.forEach(function(r){%>
+
+    <tr>
+      <td><%=r.lastname%> <%=r.firstname%></td>
+
+      <%(r.receiptField).forEach(function(sale){%>
+      
+        <span><%=sale.item%>:<%=sale.quantity%></span>
+        <% if (sale!==r.receiptField[r.receiptField.length-1] ) {%>
+        <span>,</span>
+        <% } else {%>
+        <span>.</span>
+        <%}%> <%})%>
+
+      <td><%=r.grandTotal%></td>
+      <td><%=r.paymentMethod%></td>
+      <td><%=r.createdAt.toString().substring(0,25)%></td>
+    </tr>
+    <%})%>
+  </table>
+
+  <h1>Total sales:<%=totalSales%></h1>
+</div>
+</div>

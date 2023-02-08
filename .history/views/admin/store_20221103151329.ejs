@@ -1,0 +1,26 @@
+<%- include('../includes/header') %>
+
+
+<div class="modal-body row">
+  <div class="col-md-6">
+    <!-- Your first column here -->
+    <table>
+      <tr>
+        <td>Product Name</td>
+        <td>Available Quantity</td>
+      </tr>
+      <tr>
+        <% prod.forEach(function(p){%>
+         <td><%=p.title%></td>
+         <td><%=p.quantity%></td>
+         <tr></tr>
+         <%})%>
+      </tr>
+    </table>
+  </div>
+  <div class="col-md-6">
+    <!-- Your second column here -->
+  </div>
+</div>
+
+<%- include('../includes/footer') %>

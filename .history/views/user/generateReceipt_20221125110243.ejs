@@ -1,0 +1,65 @@
+<%- include('../includes/header'); -%>
+<link rel="stylesheet" href="/css/receipt.css" />
+<div class="split left">
+  <form id="formP" action="#">
+    <div class="form-group">
+      <label htmlFor="item-name"> Item Name</label>
+      <input list="items" type="text" name="item" id="item" />
+      <datalist id="items">
+        <% for(let i=0;i<=prod.length;i++){%>
+        <option value="<%=prod[i]%>"></option>
+        <%}%>
+      </datalist>
+    </div>
+    <div class="form-group">
+      <label htmlFor="quantity"> Quantity </label>
+      <input type="number" name="quantity" id="quantity" onkeyup="doMath()" />
+    </div>
+    <div class="form-group">
+      <label htmlFor="price"> Price/Qty </label>
+      <input type="number" name="price" id="price" onkeyup="doMath()" />
+    </div>
+    <p id="total">Total price:</p>
+    <button
+      id="addNew"
+      class="btn btn-primary"
+      type="submit"
+      onclick="saveArray(event)"
+    >
+      Add to List +
+    </button>
+  </form>
+</div>
+
+<div class="split right">
+  <div class="centred">
+    <table>
+      <thead>
+        <tr>
+          <td>Item Name</td>
+          <td>Quantity</td>
+          <td>Price/Qty(#)</td>
+          <td>Total Price(#)</td>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <br />
+    <p id="grandTotal"></p>
+
+    <label for="browser">Payment Method:</label>
+    <input type="text" list="paymentM" name="payment" id="payment" />
+
+    <datalist id="paymentM">
+      <option value="Cash"></option>
+      <option value="Bank Transfer"></option>
+      <option value="P.O.S"></option>
+    </datalist>
+    <br />
+    <button type="submit" class="btn btn-primary" id="submitReceipt">
+      Genarate Receipt
+    </button>
+  </div>
+</div>
+
+<script src="/js/receipt.js"></script>

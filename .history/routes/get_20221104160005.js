@@ -1,0 +1,16 @@
+const path = require("path");
+
+const express = require("express");
+
+const getController = require("../controllers/get");
+const isAuth = require("../middleware/is_Auth");
+const router = express.Router();
+// get routes
+router.get("/receipt", isAuth, getController.getReceipt);
+router.get("/checkuser", isAuth, getController.getCheckUser);
+router.post("/login", isAuth, getController.getIndex);
+router.get("/addproduct", isAuth, getController.getAddproduct);
+router.get("/products", isAuth, getController.getproducts);
+router.get("/store", isAuth, getController.getStore);
+
+module.exports = router;

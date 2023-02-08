@@ -1,0 +1,17 @@
+<%- include('../includes/header') %>
+
+<table>
+  <tr>
+    <td>Product Name</td>
+    <td>Available Quantity</td>
+  </tr>
+  <tr>
+    <% prod.forEach(function(p){%>
+     <td class="<% if (p.quantity<50) { %>redAlert<%}%>">
+    <%=p.title%></td>
+     <td class="<% if (p.quantity<50) { %>redAlert<%}%>"><%=p.quantity%></td>
+     <tr></tr>
+     <%})%>
+  </tr>
+</table>
+<%- include('../includes/footer') %>

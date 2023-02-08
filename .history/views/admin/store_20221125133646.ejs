@@ -1,0 +1,52 @@
+<%- include('../includes/header') %>
+
+<div id="addproducts">
+  <%if(errorMessage){%>
+  <div class="user-message"><%=errorMessage%></div>
+  <%}%>
+  <form action="/addproduct" method="post">
+    <label for="">Product</label>
+    <input
+      list="datas"
+      id="title"
+      name="title"
+      type="text"
+      placeholder="product title"
+    />
+    <datalist id="datas">
+      <% for(let i=0;i<=prod.length;i++){%>
+      <option value="<%=prod[i]%>"></option>
+      <%}%>
+    </datalist>
+
+    <br />
+    <label for="">Quantity</label>
+    <input
+      id="quantity"
+      name="quantity"
+      type="text"
+      placeholder="Quantity"
+      autocomplete="off"
+    />
+    <br />
+    <button type="submit" class="btn btn-primary btn-products">
+      Create/Update
+    </button>
+  </form>
+</div>
+
+<table class="product-store">
+  <tr>
+    <td>Product Name</td>
+    <td>Available Quantity</td>
+  </tr>
+  <tr>
+    <% prods.forEach(function(p){%>
+     <td class="<% if (p.quantity<50) { %>redAlert<%}%>">
+    <%=p.title%></td>
+     <td class="<% if (p.quantity<50) { %>redAlert<%}%>"><%=p.quantity%></td>
+     <tr></tr>
+     <%})%>
+  </tr>
+</table>
+<h1></h1>

@@ -1,0 +1,48 @@
+<%- include('../includes/header') %>
+
+<div class="username">
+  <table>
+    <tr>
+      <td>Cashier</td>
+      <td>Grand Total</td>
+      <td>Date</td>
+    </tr>
+    <% receipt.forEach(function(r){%>
+
+    <tr>
+      <td><%=r.lastname%></td>
+      <td><%=r.grandTotal%></td>
+      <td><%=r.createdAt%></td>
+    </tr>
+  </table>
+  <!-- <span><h1><%=r.username%></h1></span>
+     <span><%=r.createdAt%></span> -->
+
+  <!-- <table>
+       <tr>
+         <%(r.receiptField).forEach(function(field){%>
+   
+         <tr></tr>
+         <td>
+           <p>
+             Item: <br />
+             <%=field.item%>
+           </p>
+         </td>
+         <td>
+           <p>Quantity: <br /><%=field.quantity%></p>
+         </td>
+         <td>
+           <p>Price/Qty: <br /><%=field.price%></p>
+         </td>
+         <td>
+           <p>Total: <br /><%=field.total%></p>
+         </td>
+         <% })%>
+       </tr>
+     </table>
+     <h3>Grand Total: <%=r.grandTotal%></h3> -->
+  <%})%>
+</div>
+
+<%- include('../includes/footer') %>

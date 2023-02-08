@@ -1,0 +1,22 @@
+<%- include('../includes/header') %>
+
+<div class="username">
+  <table class="product-store">
+    <tr>
+      <td>Cashier</td>
+      <td>Grand Total</td>
+      <td>Date</td>
+    </tr>
+
+    <% receipt.forEach(function(r){%>
+
+    <tr>
+      <td><%=r.lastname%> <%=r.firstname%></td>
+      <td><%=r.grandTotal%></td>
+      <td><%=r.createdAt.toString().substring(0,25)%></td>
+    </tr>
+    <%})%>
+  </table>
+
+  <h1>Total sales:<%=totalSales%></h1>
+</div>

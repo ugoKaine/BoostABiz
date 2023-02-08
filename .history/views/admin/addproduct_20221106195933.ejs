@@ -1,0 +1,34 @@
+<%- include('../includes/header') %>
+<div id="addproducts" style="width: 50rem">
+  <%if(errorMessage){%>
+  <div><%=errorMessage%></div>
+  <%}%>
+  <form action="/addproduct" method="post">
+    <label for="">Product Title</label>
+    <input
+      list="datas"
+      id="title"
+      name="title"
+      type="text"
+      placeholder="product title"
+    />
+    <datalist id="datas">
+      <% for(let i=0;i<=prod.length;i++){%>
+      <option value="<%=prod[i]%>"></option>
+      <%}%>
+    </datalist>
+
+    <br />
+    <label for="">Quantity</label>
+    <input
+      id="quantity"
+      name="quantity"
+      type="text"
+      placeholder="Quantity"
+      autocomplete="off"
+    />
+    <button type="submit">Create/Update</button>
+  </form>
+</div>
+
+<%- include('../includes/footer') %>

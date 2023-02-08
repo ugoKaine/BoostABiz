@@ -1,0 +1,35 @@
+<%- include('../includes/header') %>
+
+<div class="username">
+  <form action="/transactions" method="post">
+    <label for="startDate"><h4>Start Date:</h4></label>
+    <input type="date" name="startDate" />
+    <label for="endDate"><h4>End Date:</h4></label>
+    <input type="date" name="endDate" />
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+</div>
+<div class="checkUser">
+  <table>
+    <tr>
+      <td>Cashier</td>
+      <td>Grand Total</td>
+      <td>Payment Method</td>
+      <td>Date</td>
+    </tr>
+
+    <% receipt.forEach(function(r){%>
+
+    <tr>
+      <td><%=r.lastname%> <%=r.firstname%></td>
+      <td><%=r.grandTotal%></td>
+      <td><%=r.paymentMethod%></td>
+      <td><%=r.createdAt.toString().substring(0,25)%></td>
+    </tr>
+    <%})%>
+  </table>
+
+  <h1>Total sales:<%=totalSales%></h1>
+</div>
+</div>

@@ -1,0 +1,25 @@
+<%- include('../includes/header') %>
+<div id="addproducts" style="width: 50rem">
+  <form action="/addproduct" method="post">
+    <label for="">Product Title</label>
+    <input
+      list="data"
+      id="title"
+      name="title"
+      type="text"
+      placeholder="product title"
+    />
+    <datalist id="data">
+      <%prod.forEach(function(p){%>
+      <option value="<%=p%>"></option>
+      <%})%>
+    </datalist>
+
+    <br />
+    <label for="">Quantity</label>
+    <input id="quantity" name="quantity" type="text" placeholder="Quantity" />
+    <button type="submit">Add/Update</button>
+  </form>
+</div>
+
+<%- include('../includes/footer') %>
