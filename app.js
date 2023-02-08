@@ -11,8 +11,6 @@ const flash = require("connect-flash");
 
 const MONGODB_URI = "mongodb+srv://newUser:HdqakEetS39gljj0@cluster0.7mvzsag.mongodb.net/EuphreDb";
 
-// const uri = "mongodb+srv://newUser:HdqakEetS39gljj0@cluster0.7mvzsag.mongodb.net/test";
-
 const app = express();
 const store = new MongoDBStore({
   uri: MONGODB_URI,
