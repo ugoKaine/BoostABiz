@@ -1,0 +1,28 @@
+<%- include('../includes/header') %>
+
+<div class="users">
+  <table>
+    <tr class="bighead">
+      <td>Firstname</td>
+      <td>Lastname</td>
+      <td>Email</td>
+      <td>role</td>
+      <td>Delete</td>
+    </tr>
+    
+    
+    <% user.forEach(function(u){ %>
+      <tr>
+    <form action="/delete" method="post" >
+      <td><%=u.firstname%></td>
+      <td><%=u.lastname%></td>
+      <td><%=u.username%></td>
+      <td><%=u.role%></td>
+      <td>
+        <input type="checkbox" name="checkbox" value="<%=u._id%>" onchange="this.form.submit()"/>
+      </td>
+    </tr>
+      <%})%>
+    </form>
+    </table>
+  </div>

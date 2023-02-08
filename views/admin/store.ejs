@@ -1,0 +1,59 @@
+<%- include('../includes/header') %>
+<div id="addproducts">
+  <h1>Create/Update Product</h1>
+  <%if(errorMessage){%>
+  <div class="user-message"><%=errorMessage%></div>
+  <%}%>
+  <form action="/addproduct" class="add" method="post">
+    <label for="title">Product Title</label>
+    <input
+      list="datas"
+      id="title"
+      name="title"
+      type="text"
+      placeholder="product title"
+    />
+    <datalist id="datas">
+      <% for(let i=0;i<=prod.length;i++){%>
+      <option value="<%=prod[i]%>"></option>
+      <%}%>
+    </datalist>
+
+    <br />
+    <label for="quantity">Quantity</label>
+    <input
+      id="quantity"
+      name="quantity"
+      type="text"
+      placeholder="Quantity"
+      autocomplete="off"
+    />
+    <br />
+    <button type="submit" class="btn btn-primary btn-products">
+      Create/Update
+    </button>
+  </form>
+</div>
+
+</div>
+<table class="product-store">
+  <tr>
+    <td>Product Name</td>
+    <td>Available Quantity</td>
+    <td>Delete</td>
+  </tr>
+  <tr>
+    <% prods.forEach(function(p){%>
+     <td class="<% if (p.quantity<11) { %>redAlert<%}%>">
+    <%=p.title%></td>
+     <td class="<% if (p.quantity<11) { %>redAlert<%}%>"><%=p.quantity%></td>
+     <form action="/deleteP" method="post">
+     <td>
+      <input type="checkbox" name="checkbox" value="<%=p._id%>" onchange="this.form.submit()"/>
+    </td>
+  </form>
+     <tr></tr>
+     <%})%>
+  </tr>
+</table>
+<br>
