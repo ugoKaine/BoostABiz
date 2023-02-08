@@ -49,13 +49,13 @@ app.use(postRoutes);
 app.use(authRoutes);
 
 
-let port = process.env.PORT;
-app.set("port", process.env.PORT || 3000);
+// let port = process.env.PORT;
+// app.set("port", process.env.PORT || 3000);
 
 mongoose
   .connect(MONGODB_URI)
   .then((result) => {
-    app.listen(port);
+    app.listen(process.env.PORT || 3000);
   })
   .catch((err) => {
     console.log(err);
