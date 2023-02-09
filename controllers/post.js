@@ -69,7 +69,7 @@ exports.postReceipt = (req, res, next) => {
   pdfDoc.text("For your Online And Offline Purchase of Medicines,beauty & Fitness Essentials...", {
     align: "center",
   });
-  pdfDoc.text("Contact Us @ Tel:07083732625 or ephrekingscompaninies@gmail.com", {
+  pdfDoc.text("Contact Us @ Tel:07083732625 or ephrekingscompanies@gmail.com", {
     align: "center",
   });
   pdfDoc.end();
