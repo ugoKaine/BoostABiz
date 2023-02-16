@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-
+const Product = require("../models/store")
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 
@@ -53,6 +53,7 @@ exports.getReset = (req, res, next) => {
 
 // Post
 exports.postLogin = (req, res, next) => {
+  const Prod=[];
   const username = req.body.username;
   const password = req.body.password;
   User.findOne({ username: username })
@@ -69,7 +70,14 @@ exports.postLogin = (req, res, next) => {
             req.session.user = user;
             return req.session.save((err) => {
               const role = req.session.user.role;
-              res.render("user/index", { role: role });
+              Product.find().then(p=>{
+ 
+                if(p.quantity<10){
+                  console.log(p.title)
+                    Prod.push(p.title)
+                }
+                })
+                  res.render("user/index", { role: role , Prod:Prod});
             });
           }
           req.flash("error", "Incorrect Password.");

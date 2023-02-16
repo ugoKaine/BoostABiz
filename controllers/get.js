@@ -36,13 +36,14 @@ exports.getReceipt = (req, res, next) => {
   const role = req.session.user.role;
   dataL = [];
   Product.find({})
+    .sort("title")
     .then((product) => {
       if (product) {
         product.forEach((p) => {
-          dataL.push(p.title);
+          dataL.push({"title":p.title,"price":p.price});
         });
 
-        dataL.sort();
+        dataL.sort(dataL.title)
         res.render("user/generateReceipt", { prod: dataL, role: role });
       }
     })

@@ -94,14 +94,26 @@ exports.postAddProduct = (req, res, next) => {
   const role = req.session.user.role;
   const title = req.body.title;
   const quantity = req.body.quantity;
+  const price = req.body.price;
   Product.findOne({ title: title })
     .then((product) => {
       if (product) {
-        product.quantity += parseInt(quantity);
+        if(quantity && price){
+          product.quantity += parseInt(quantity);
+          product.price = parseInt(price);
+        }
+        else if(quantity){
+          product.quantity += parseInt(quantity);
+        }
+        
+        else if(price){
+          product.price = parseInt(price);
+        }
+        
         return product.save().then((result) => {
           req.flash(
             "error",
-            "Updated Product " + title + " by " + " a quantity of " + quantity
+            "Updated Product " + title 
           );
 
           res.redirect("/products");
@@ -110,6 +122,7 @@ exports.postAddProduct = (req, res, next) => {
         const product = new Product({
           title: title,
           quantity: quantity,
+          price: price,
         });
         product.save().then((result) => {
           console.log(result);

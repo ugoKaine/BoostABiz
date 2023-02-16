@@ -29,6 +29,15 @@
       autocomplete="off"
     />
     <br />
+    <label for="price">Price</label>
+    <input
+      id="price"
+      name="price"
+      type="text"
+      placeholder="Price"
+      autocomplete="off"
+    />
+    <br />
     <button type="submit" class="btn btn-primary btn-products">
       Create/Update
     </button>
@@ -40,6 +49,7 @@
   <tr>
     <td>Product Name</td>
     <td>Available Quantity</td>
+    <td>Price(#)</td>
     <td>Delete</td>
   </tr>
   <tr>
@@ -47,6 +57,7 @@
      <td class="<% if (p.quantity<11) { %>redAlert<%}%>">
     <%=p.title%></td>
      <td class="<% if (p.quantity<11) { %>redAlert<%}%>"><%=p.quantity%></td>
+     <td class="<% if (p.quantity<11) { %>redAlert<%}%>"><%=p.price%></td>
      <form action="/deleteP" method="post">
      <td>
       <input type="checkbox" name="checkbox" value="<%=p._id%>" onchange="this.form.submit()"/>
