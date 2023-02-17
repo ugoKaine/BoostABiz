@@ -1,19 +1,30 @@
 let sales = [];
 let grandTotal = 0;
+
+function updatePrice(e){
+  const price = parseInt(e.target.options[e.target.selectedIndex].value)
+  document.querySelector("input[id=price]").value = price;
+}
+
 function doMath() {
   const numOne = document.getElementById("quantity").value;
-  const numTwo = document.getElementById("price").value;
+  const numTwo = document.querySelector("input[id=price]").value;
   const theProduct = parseInt(numOne) * parseInt(numTwo);
   const totalPrice = document.getElementById("total");
 
   if (theProduct) {
-    totalPrice.innerHTML = "Total Price :" + theProduct;
+    totalPrice.textContent = "Total Price :" + theProduct;
   }
 }
 
 function saveArray(e) {
   e.preventDefault();
-  const item = document.getElementById("item").value;
+  // const item = document.getElementById("item").innerHTML;
+  const selectedProduct = document.querySelector("select[id=products]");
+  const item = selectedProduct.options[selectedProduct.selectedIndex].text;
+  // alert(item);
+  // return;
+
   const quantity = parseFloat(document.getElementById("quantity").value);
   const price = parseFloat(document.getElementById("price").value);
   const total = parseFloat(
@@ -28,9 +39,10 @@ function saveArray(e) {
       total,
     };
     const elementExists = sales.find(
-      (eachElement) => eachElement.item == newElement.item
+      (eachElement) => eachElement.item === newElement.item
     );
     if (elementExists) {
+      console.log(item + "exists")
       sales = sales.map((element) => {
         if (element.item == newElement.item) {
           element.quantity += parseFloat(newElement.quantity);

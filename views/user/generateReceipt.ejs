@@ -3,20 +3,24 @@
 <div class="split left">
   <form id="formP" action="#">
     <div class="form-group">
-      <label htmlFor="item-name"> Item Name</label>
-      <input list="items" type="text" name="item" id="item" onkeyup="autoInputPrice()" />
+       <label htmlFor="item-name"> Item Name</label>
+     <!--  <input list="items" type="text" name="item" id="item" onkeyup="autoInputPrice()" /> -->
 
-      <datalist id="items">
+      <!-- <datalist id="items" onchange="demo(event)">
         
           <% prod.forEach(p=>{ %>
 
-            <option value="<%=p.title%>" value="<%=p.price%>"></option>
-            <option value="<%=p.price%>"></option>
+            <option value="<%=p.price%>"><%=p.title%></option>
           
           <%})%>
 
         
-      </datalist>
+      </datalist> -->
+      <select id="products" onclick="updatePrice(event)">
+        <% prod.forEach(p=>{ %>
+          <option id="item" value="<%=p.price%>"><%=p.title%></option>
+        <%})%>
+      </select>
     </div>
     <div class="form-group">
       <label htmlFor="quantity"> Quantity </label>
@@ -25,12 +29,14 @@
         name="quantity"
         id="quantity"
         onkeyup="doMath()"
+        onclick="doMath()"
+        onchange="doMath()"
         autocomplete="off"
       />
     </div>
     <div class="form-group">
       <label htmlFor="price" autocomplete="off"> Price/Qty </label>
-      <input type="number" name="price" id="price" onkeyup="doMath()" />
+      <input type="number" name="price" id="price" readonly/>
     </div>
     <p id="total">Total price:</p>
     <button
@@ -74,21 +80,6 @@
     </button>
   </div>
 </div>
-
-<script>
-  function autoInputPrice() {
-    var item = document.getElementById('item').value;
-    if(item) {
-      console.log(prod)
-      const ProdF=prod.find(
-      (eachElement) => eachElement.item == item
-    );
-    if(ProdF){
-      document.getElementById("price").value==parseInt(ProdF.price)
-    }
-    }
-  }
-</script>
 
 <script src="/js/receipt.js"></script>
 
