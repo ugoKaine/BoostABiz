@@ -15,8 +15,9 @@ exports.postReceipt = (req, res, next) => {
     lastname: req.session.user.lastname,
     firstname: req.session.user.firstname,
   });
-  receipt.save();
-  const invoiceName = "invoice-" + receipt._id + ".pdf";
+  const savedReceipt = receipt.save();
+  if(savedReceipt){
+    const invoiceName = "invoice-" + receipt._id + ".pdf";
   const invoicePath = path.join("./data", "invoices", invoiceName);
 
   const pdfDoc = new PDFDocument({ margin: 10 });
@@ -88,6 +89,8 @@ exports.postReceipt = (req, res, next) => {
         console.log(err);
       });
   });
+  }
+  else{res.redirect("/")}
 };
 
 exports.postAddProduct = (req, res, next) => {
