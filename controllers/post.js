@@ -4,6 +4,8 @@ const Product = require("../models/store");
 const Receipt = require("../models/receipt");
 const User = require("../models/user");
 
+const { validationResult } = require("express-validator");
+
 exports.postReceipt = (req, res, next) => {
   const role = req.session.user.role;
   const receiptF = req.body.sales;
