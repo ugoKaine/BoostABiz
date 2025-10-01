@@ -32,13 +32,13 @@ exports.postReceipt = (req, res, next) => {
   pdfDoc.pipe(res);
 
   pdfDoc.text(new Date().toString().substring(0, 25));
-  pdfDoc.fontSize(30).text("EPHRE KINGS PHARMACY", { align: "center" });
+  pdfDoc.fontSize(30).text("APC RESTUARANT", { align: "center" });
   pdfDoc
     .fontSize(20)
     .text("Live Healthy & Happily", {
       align: "center",
     });
-  pdfDoc.fontSize(20).text("79B Modupe Young Street, Thomas Estate, Ajah, Lagos", { align: "center" });
+  pdfDoc.fontSize(20).text("APC Street, APC Estate, Ajah, Lagos", { align: "center" });
 
   pdfDoc.fontSize(20).text("Item", 10, 150, { width: 190 });
   pdfDoc.fontSize(20).text("Qty", 280, 150, { width: 100 });
@@ -69,10 +69,10 @@ exports.postReceipt = (req, res, next) => {
     .text("Thanks for your patronage!", 0, 250 + productNo * 30, {
       align: "center",
     });
-  pdfDoc.text("For your Online And Offline Purchase of Medicines,beauty & Fitness Essentials...", {
+  pdfDoc.text("For your Online And Offline Purchase of Food Items ...", {
     align: "center",
   });
-  pdfDoc.text("Contact Us @ Tel:07083732625 or ephrekingscompanies@gmail.com", {
+  pdfDoc.text("Contact Us @ Tel:08100000000 or apcpdpadc@gmail.com", {
     align: "center",
   });
   pdfDoc.end();

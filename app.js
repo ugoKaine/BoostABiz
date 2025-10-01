@@ -9,7 +9,10 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 
 const flash = require("connect-flash");
 
-const MONGODB_URI = "mongodb+srv://newUser:HdqakEetS39gljj0@cluster0.7mvzsag.mongodb.net/EuphreDb";
+const MONGODB_URI = 
+"mongodb://localhost:27017/AdminPharmacy";
+
+// "mongodb+srv://Destiny-Admin:ashley1811@cluster0.dgjqm0d.mongodb.net/AdminPharmacyDB";
 
 const app = express();
 const store = new MongoDBStore({

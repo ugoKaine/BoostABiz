@@ -61,7 +61,7 @@ td {
 .frontImage {
   width: 100%;
   height: 80vh;
-  background-image: url(fp1.jpg);
+  background-image: url(fp3.jpg);
   background-size: cover;
   background-position: center;
 }
@@ -69,7 +69,7 @@ td {
   margin-right: 4px;
 }
 .col-md-6 {
-  background-image: url(HopeAImage.jpg);
+  background-image: url(fp3.jpg);
   height: 1vh;
   width: 100%;
   align-items: center;

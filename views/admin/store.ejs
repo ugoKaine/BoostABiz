@@ -1,11 +1,11 @@
 <%- include('../includes/header') %>
 <div id="addproducts">
-  <h1>Create/Update Product</h1>
+  <h1>Create/Update Food Item</h1>
   <%if(errorMessage){%>
   <div class="user-message"><%=errorMessage%></div>
   <%}%>
   <form action="/addproduct" class="add" method="post">
-    <label for="title">Product Title</label>
+    <label for="title">Food Title</label>
     <input
       list="datas"
       id="title"
@@ -47,7 +47,7 @@
 </div>
 <table class="product-store">
   <tr>
-    <td>Product Name</td>
+    <td>Food Name</td>
     <td>Available Quantity</td>
     <td>Price(#)</td>
     <td>Delete</td>
