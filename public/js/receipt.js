@@ -1,10 +1,28 @@
 let sales = [];
 let grandTotal = 0;
 
-function updatePrice(e) {
-  const price = parseInt(e.target.options[e.target.selectedIndex].value);
-  document.querySelector("input[id=price]").value = price;
+function updatePriceFromInput() {
+  const input = document.getElementById("productInput");
+  const selectedValue = input.value.trim();
+  const dataList = document.getElementById("productList");
+  const options = dataList.getElementsByTagName("option");
+
+  let matchedPrice = null;
+
+  for (let opt of options) {
+    if (opt.value.toLowerCase() === selectedValue.toLowerCase()) {
+      matchedPrice = opt.getAttribute("data-price");
+      break;
+    }
+  }
+
+  if (matchedPrice) {
+    document.getElementById("price").value = matchedPrice;
+  } else {
+    document.getElementById("price").value = "";
+  }
 }
+
 
 function doMath() {
   const numOne = document.getElementById("quantity").value;
@@ -19,8 +37,10 @@ function doMath() {
 
 function saveArray(e) {
   e.preventDefault();
-  const selectedProduct = document.querySelector("select[id=products]");
-  const item = selectedProduct.options[selectedProduct.selectedIndex].text;
+  // const selectedProduct = document.querySelector("select[id=products]");
+  // const item = selectedProduct.options[selectedProduct.selectedIndex].text;
+  const item = document.getElementById("productInput").value.trim();
+
 
   const quantity = parseFloat(document.getElementById("quantity").value);
   const price = parseFloat(document.getElementById("price").value);

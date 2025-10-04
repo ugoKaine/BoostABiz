@@ -4,11 +4,20 @@
   <form id="formP" action="#">
     <div class="form-group">
       <label htmlFor="item-name"> Food Name</label>
-      <select id="products" onclick="updatePrice(event)">
-        <% prod.forEach(p=>{ %>
-          <option id="item" value="<%=p.price%>"><%=p.title%></option>
-        <%})%>
-      </select>
+            <input
+            list="productList"
+            id="productInput"
+            name="product"
+            placeholder="Search product..."
+            autocomplete="off"
+            oninput="updatePriceFromInput()"
+          />
+
+        <datalist id="productList">
+          <% prod.forEach(p=>{ %>
+            <option data-price="<%=p.price%>" value="<%=p.title%>"></option>
+          <%})%>
+        </datalist>
     </div>
     <div class="form-group">
       <label htmlFor="quantity"> Quantity </label>
