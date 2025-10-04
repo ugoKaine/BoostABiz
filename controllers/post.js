@@ -40,13 +40,13 @@ console.log("Incoming receipt body:", req.body);
 
       // Header
       pdfDoc.text(new Date().toString().substring(0, 25));
-      pdfDoc.fontSize(30).text("APC RESTUARANT", { align: "center" });
+      pdfDoc.fontSize(30).text("Boosta Biz", { align: "center" });
       pdfDoc
         .fontSize(20)
         .text("Live Healthy & Happily", { align: "center" });
       pdfDoc
         .fontSize(20)
-        .text("APC Street, APC Estate, Ajah, Lagos", { align: "center" });
+        .text("BoostA Biz, Unity Estate Alimosho, Lagos", { align: "center" });
 
       // Customer details
       pdfDoc.moveDown();
@@ -86,10 +86,10 @@ console.log("Incoming receipt body:", req.body);
         .text("Thanks for your patronage!", 0, 300 + productNo * 30, {
           align: "center",
         });
-      pdfDoc.text("For your Online And Offline Purchase of Food Items ...", {
-        align: "center",
-      });
-      pdfDoc.text("Contact Us @ Tel:08100000000 or apcpdpadc@gmail.com", {
+      // pdfDoc.text("For your Online And Offline Purchase of all products...", {
+      //   align: "center",
+      // });
+      pdfDoc.text("Contact Us @ Tel:08109811668 or support@boosta.ng", {
         align: "center",
       });
       pdfDoc.end();
