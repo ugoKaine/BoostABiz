@@ -1,63 +1,71 @@
 <%- include('../includes/header') %>
 
 <div class="username">
-  <form action="/transactions" method="post">
-    <label for="startDate"><h4>Start Date:</h4></label>
-    <input type="date" name="startDate" />
-    <label for="endDate"><h4>End Date:</h4></label>
-    <input type="date" name="endDate" />
+  <form action="/transactions" method="POST">
+  <label for="cashier">Cashier:</label>
+  <select name="cashier" id="cashier">
+    <option value="">-- All Cashiers --</option>
+    <% u.forEach(function(username){ %>
+      <option value="<%= username %>"><%= username %></option>
+    <% }) %>
+  </select>
 
-    <label for="cashier"><h4>Cashier:</h4></label>
-    <input list="users" type="text" name="cashier" />
-    <datalist id="users">
-      <% for(let i=0;i<=u.length;i++){%>
-      <option value="<%=u[i]%>"></option>
-      <%}%>
-    </datalist>
+  <label for="payment">Payment Method:</label>
+  <select name="payment" id="payment">
+    <option value="">-- All Methods --</option>
+    <option value="Cash">Cash</option>
+    <option value="Bank Transfer">Bank Transfer</option>
+    <option value="P.O.S">P.O.S</option>
+  </select>
 
-    <label for="payment"><h4>Payment Method:</h4></label>
-    <input list="paymentM" type="text" name="payment" />
-    <datalist id="paymentM">
-      <option value="Cash"></option>
-      <option value="Bank Transfer"></option>
-      <option value="P.O.S"></option>
-    </datalist>
-    <button type="submit" class="btn btn-primary">Search</button>
-  </form>
+  <label for="startDate">Start Date:</label>
+  <input type="date" name="startDate" id="startDate" />
 
+  <label for="endDate">End Date:</label>
+  <input type="date" name="endDate" id="endDate" />
+
+  <button type="submit">Filter</button>
+</form>
 </div>
+
 <div class="checkUser">
   <table id="salesTable">
     <tr>
       <td>Cashier</td>
+      <td>Customer Name</td>
+      <td>Phone Number</td>
+      <td>Address</td>
       <td>Items Sold</td>
       <td>Grand Total</td>
       <td>Payment Method</td>
       <td>Date</td>
     </tr>
 
-    <% receipt.forEach(function(r){%>
-
+    <% receipt.forEach(function(r){ %>
     <tr>
-      <td><%=r.lastname%> <%=r.firstname%></td>
+      <td><%= r.lastname %> <%= r.firstname %></td>
+      <td><%= r.customerName %></td>
+      <td><%= r.phoneNumber %></td>
+      <td><%= r.address %></td>
       <td>
-      <%(r.receiptField).forEach(function(sale){%>
-      
-        <span><%=sale.item%>:<%=sale.quantity%></span>
-        <% if (sale!==r.receiptField[r.receiptField.length-1] ) {%>
-        <span>,</span>
-        <% } else {%>
-        <span>.</span>
-        <%}%> <%})%>
+        <% r.receiptField.forEach(function(sale, index){ %>
+          <span><%= sale.item %>: <%= sale.quantity %></span>
+          <% if (index !== r.receiptField.length - 1) { %>
+            <span>,</span>
+          <% } else { %>
+            <span>.</span>
+          <% } %>
+        <% }) %>
       </td>
-      <td><%=r.grandTotal%></td>
-      <td><%=r.paymentMethod%></td>
-      <td><%=r.createdAt.toString().substring(0,25)%></td>
+      <td><%= r.grandTotal %></td>
+      <td><%= r.paymentMethod %></td>
+      <td><%= r.createdAt.toString().substring(0,25) %></td>
     </tr>
-    <%})%>
+    <% }) %>
   </table>
+
   <div id="underSales">
-  <h1>Total sales:<%=totalSales%></h1>
-</div>
+    <h1>Total sales: <%= totalSales %></h1>
+  </div>
 </div>
 </div>

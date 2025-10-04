@@ -9,6 +9,8 @@ const { validationResult } = require("express-validator");
 exports.postReceipt = (req, res, next) => {
   const role = req.session.user.role;
   const receiptF = req.body.sales;
+console.log("Incoming receipt body:", req.body);
+
   const receipt = new Receipt({
     receiptField: req.body.sales,
     grandTotal: req.body.grandTotal,
@@ -16,84 +18,105 @@ exports.postReceipt = (req, res, next) => {
     username: req.session.user.username,
     lastname: req.session.user.lastname,
     firstname: req.session.user.firstname,
+    customerName: req.body.customerName,
+    phoneNumber: req.body.phoneNumber,
+    address: req.body.address,
   });
-  const savedReceipt = receipt.save();
-  if(savedReceipt){
-    const invoiceName = "invoice-" + receipt._id + ".pdf";
-  const invoicePath = path.join("./data", "invoices", invoiceName);
 
-  const pdfDoc = new PDFDocument({ margin: 10 });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    'inline; filename="' + invoiceName + '"'
-  );
+  receipt
+    .save()
+    .then((savedReceipt) => {
+      const invoiceName = "invoice-" + savedReceipt._id + ".pdf";
+      const invoicePath = path.join("./data", "invoices", invoiceName);
 
-  pdfDoc.pipe(res);
+      const pdfDoc = new PDFDocument({ margin: 10 });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'inline; filename="' + invoiceName + '"'
+      );
 
-  pdfDoc.text(new Date().toString().substring(0, 25));
-  pdfDoc.fontSize(30).text("APC RESTUARANT", { align: "center" });
-  pdfDoc
-    .fontSize(20)
-    .text("Live Healthy & Happily", {
-      align: "center",
-    });
-  pdfDoc.fontSize(20).text("APC Street, APC Estate, Ajah, Lagos", { align: "center" });
+      pdfDoc.pipe(res);
 
-  pdfDoc.fontSize(20).text("Item", 10, 150, { width: 190 });
-  pdfDoc.fontSize(20).text("Qty", 280, 150, { width: 100 });
-  pdfDoc.fontSize(20).text("Price", 330, 150, { width: 100 });
-  pdfDoc.fontSize(20).text("Total Price", 410, 150, { width: 190 });
-  pdfDoc.fontSize(20).text("");
+      // Header
+      pdfDoc.text(new Date().toString().substring(0, 25));
+      pdfDoc.fontSize(30).text("APC RESTUARANT", { align: "center" });
+      pdfDoc
+        .fontSize(20)
+        .text("Live Healthy & Happily", { align: "center" });
+      pdfDoc
+        .fontSize(20)
+        .text("APC Street, APC Estate, Ajah, Lagos", { align: "center" });
 
-  let productNo = 1;
+      // Customer details
+      pdfDoc.moveDown();
+      pdfDoc.fontSize(16).text("Customer Name: " + savedReceipt.customerName);
+      pdfDoc.fontSize(16).text("Phone Number: " + savedReceipt.phoneNumber);
+      pdfDoc.fontSize(16).text("Address: " + savedReceipt.address);
+      pdfDoc.moveDown();
 
-  receipt.receiptField.forEach(function (sale) {
-    let y = 150 + productNo * 20;
-    pdfDoc.fontSize(15).text(sale.item, 10, y, { width: 250 });
-    pdfDoc.text(sale.quantity, 280, y, { width: 100 });
-    pdfDoc.fontSize(15).text(sale.price, 330, y, { width: 100 });
-    pdfDoc.fontSize(15).text(sale.total, 410, y, { width: 190 });
-    productNo++;
-  });
-  pdfDoc
-    .rect(7, 150 + productNo * 30, 560, 0.2)
-    .fillColor("#000")
-    .stroke("#000");
-  productNo++;
+      // Table headers
+      pdfDoc.fontSize(20).text("Item", 10, 200, { width: 190 });
+      pdfDoc.text("Qty", 280, 200, { width: 100 });
+      pdfDoc.text("Price", 330, 200, { width: 100 });
+      pdfDoc.text("Total Price", 410, 200, { width: 190 });
 
-  pdfDoc.text("Grand Total:", 310, 160 + productNo * 30).moveDown();
-  pdfDoc.text(receipt.grandTotal, 410, 160 + productNo * 30).moveDown();
-  pdfDoc
-    .fontSize(20)
-    .text("Thanks for your patronage!", 0, 250 + productNo * 30, {
-      align: "center",
-    });
-  pdfDoc.text("For your Online And Offline Purchase of Food Items ...", {
-    align: "center",
-  });
-  pdfDoc.text("Contact Us @ Tel:08100000000 or apcpdpadc@gmail.com", {
-    align: "center",
-  });
-  pdfDoc.end();
-
-  receiptF.forEach((sale) => {
-    Product.findOne({ title: sale.item })
-      .then((product) => {
-        product.quantity -= parseInt(sale.quantity);
-        product.title = product.title;
-        product.save();
-      })
-      .then((result) => {
-        console.log("UPDATED PRODUCT!");
-      })
-      .catch((err) => {
-        console.log(err);
+      let productNo = 1;
+      savedReceipt.receiptField.forEach((sale) => {
+        let y = 200 + productNo * 20;
+        pdfDoc.fontSize(15).text(sale.item, 10, y, { width: 250 });
+        pdfDoc.text(sale.quantity, 280, y, { width: 100 });
+        pdfDoc.text(sale.price, 330, y, { width: 100 });
+        pdfDoc.text(sale.total, 410, y, { width: 190 });
+        productNo++;
       });
-  });
-  }
-  else{res.redirect("/")}
+
+      // Grand total
+      pdfDoc
+        .rect(7, 200 + productNo * 30, 560, 0.2)
+        .fillColor("#000")
+        .stroke("#000");
+      productNo++;
+
+      pdfDoc.text("Grand Total:", 310, 210 + productNo * 30).moveDown();
+      pdfDoc.text(savedReceipt.grandTotal, 410, 210 + productNo * 30).moveDown();
+
+      pdfDoc
+        .fontSize(20)
+        .text("Thanks for your patronage!", 0, 300 + productNo * 30, {
+          align: "center",
+        });
+      pdfDoc.text("For your Online And Offline Purchase of Food Items ...", {
+        align: "center",
+      });
+      pdfDoc.text("Contact Us @ Tel:08100000000 or apcpdpadc@gmail.com", {
+        align: "center",
+      });
+      pdfDoc.end();
+
+      // Update stock
+      receiptF.forEach((sale) => {
+        Product.findOne({ title: sale.item })
+          .then((product) => {
+            if (product) {
+              product.quantity -= parseInt(sale.quantity);
+              return product.save();
+            }
+          })
+          .then(() => {
+            console.log("UPDATED PRODUCT!");
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+    })
+    .catch((err) => {
+      console.error("Error saving receipt:", err);
+      res.redirect("/");
+    });
 };
+
 
 exports.postAddProduct = (req, res, next) => {
   const role = req.session.user.role;
@@ -151,53 +174,71 @@ exports.postTransactions = (req, res, next) => {
   const role = req.session.user.role;
   const cashier = req.body.cashier;
   const payment = req.body.payment;
-  const startDate = new Date(req.body.startDate);
-  const endDate = new Date(req.body.endDate);
-  endDate.setDate(endDate.getDate() + 1);
+
   let query = {};
-  let userL = [];
+  let dateFilter = {};
+
+  // Only add date filter if provided
+  if (req.body.startDate && req.body.endDate) {
+    const startDate = new Date(req.body.startDate);
+    const endDate = new Date(req.body.endDate);
+    endDate.setDate(endDate.getDate() + 1);
+
+    dateFilter = {
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    };
+  }
+
+  // Optional filters
   if (payment) {
     query.paymentMethod = payment;
   }
   if (cashier) {
     query.username = cashier;
   }
-  if (req.session.user.role == "admin") {
-    Receipt.find({
-      createdAt: {
-        $gte: startDate,
-        $lte: endDate,
-      },
-    })
+
+  if (role === "admin") {
+    Receipt.find(dateFilter)
       .find(query)
       .sort({ createdAt: -1 })
-      .then((receipt) => {
-        if (receipt) {
-          receipt.forEach((r) => {
-            Total += r.grandTotal;
-          });
-          User.find().then((user) => {
-            if (user) {
-              user.forEach((u) => {
-                userL.push(u.username);
-              });
-            }
-          });
-          res.render("admin/checkUser", {
-            receipt: receipt,
-            totalSales: Total,
-            role: role,
-            u: userL,
-          });
-        } else {
-          console.log(err);
-          res.redirect("/");
+      .then((receipts) => {
+        if (!receipts) {
+          return res.redirect("/");
         }
+
+        receipts.forEach((r) => {
+          Total += r.grandTotal;
+        });
+
+        // Get all cashiers for dropdown
+        User.find()
+          .then((users) => {
+            const userL = users.map((u) => u.username);
+
+            res.render("admin/checkUser", {
+              receipt: receipts,
+              totalSales: Total,
+              role: role,
+              u: userL, // send usernames to EJS
+            });
+          })
+          .catch((err) => {
+            console.log("Error fetching users:", err);
+            res.redirect("/");
+          });
+      })
+      .catch((err) => {
+        console.log("Error fetching receipts:", err);
+        res.redirect("/");
       });
   } else {
     res.redirect("/");
   }
 };
+
 
 exports.postDelete = (req, res, next) => {
   const checkbox = req.body.checkbox;

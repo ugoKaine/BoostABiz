@@ -20,6 +20,23 @@ const receiptSchema = new Schema(
     username: String,
     lastname: String,
     firstname: String,
+
+  // Customer info
+    customerName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

@@ -3,19 +3,7 @@
 <div class="split left">
   <form id="formP" action="#">
     <div class="form-group">
-       <label htmlFor="item-name"> Food Name</label>
-     <!--  <input list="items" type="text" name="item" id="item" onkeyup="autoInputPrice()" /> -->
-
-      <!-- <datalist id="items" onchange="demo(event)">
-        
-          <% prod.forEach(p=>{ %>
-
-            <option value="<%=p.price%>"><%=p.title%></option>
-          
-          <%})%>
-
-        
-      </datalist> -->
+      <label htmlFor="item-name"> Food Name</label>
       <select id="products" onclick="updatePrice(event)">
         <% prod.forEach(p=>{ %>
           <option id="item" value="<%=p.price%>"><%=p.title%></option>
@@ -66,20 +54,32 @@
     <br />
     <p id="grandTotal"></p>
 
-    <label for="browser">Payment Method:</label>
-    <input type="text" list="paymentM" name="payment" id="payment" />
+    <!-- Customer details before payment method -->
+    <label for="customerName">Customer Name:</label>
+    <input type="text" name="customerName" id="customerName" required />
+    <br />
 
+    <label for="phoneNumber">Phone Number:</label>
+    <input type="text" name="phoneNumber" id="phoneNumber" required />
+    <br />
+
+    <label for="address">Address:</label>
+    <input type="text" name="address" id="address" required />
+    <br /><br />
+
+    <label for="payment">Payment Method:</label>
+    <input type="text" list="paymentM" name="payment" id="payment" />
     <datalist id="paymentM">
       <option value="Cash"></option>
       <option value="Bank Transfer"></option>
       <option value="P.O.S"></option>
     </datalist>
+
     <br /><br /><br />
     <button type="submit" class="btn btn-primary" id="submitReceipt">
-      Genarate Receipt
+      Generate Receipt
     </button>
   </div>
 </div>
 
 <script src="/js/receipt.js"></script>
-

@@ -1,8 +1,8 @@
 let sales = [];
 let grandTotal = 0;
 
-function updatePrice(e){
-  const price = parseInt(e.target.options[e.target.selectedIndex].value)
+function updatePrice(e) {
+  const price = parseInt(e.target.options[e.target.selectedIndex].value);
   document.querySelector("input[id=price]").value = price;
 }
 
@@ -19,30 +19,19 @@ function doMath() {
 
 function saveArray(e) {
   e.preventDefault();
-  // const item = document.getElementById("item").innerHTML;
   const selectedProduct = document.querySelector("select[id=products]");
   const item = selectedProduct.options[selectedProduct.selectedIndex].text;
-  // alert(item);
-  // return;
 
   const quantity = parseFloat(document.getElementById("quantity").value);
   const price = parseFloat(document.getElementById("price").value);
-  const total = parseFloat(
-    (parseFloat(quantity) * parseFloat(price)).toFixed(2)
-  );
+  const total = parseFloat((parseFloat(quantity) * parseFloat(price)).toFixed(2));
+
   if (total) {
     document.querySelector("tbody").innerHTML = "";
-    const newElement = {
-      item,
-      quantity,
-      price,
-      total,
-    };
-    const elementExists = sales.find(
-      (eachElement) => eachElement.item === newElement.item
-    );
+    const newElement = { item, quantity, price, total };
+
+    const elementExists = sales.find((eachElement) => eachElement.item === newElement.item);
     if (elementExists) {
-      console.log(item + "exists")
       sales = sales.map((element) => {
         if (element.item == newElement.item) {
           element.quantity += parseFloat(newElement.quantity);
@@ -53,7 +42,7 @@ function saveArray(e) {
     } else {
       sales.push(newElement);
     }
-    console.log(sales);
+
     grandTotal += parseInt(total);
     document.getElementById("formP").reset();
 
@@ -75,9 +64,7 @@ function saveArray(e) {
       tbody.appendChild(tr);
     });
     document.getElementById("total").innerHTML = "";
-
-    document.getElementById("grandTotal").innerHTML =
-      "Grand Total #" + grandTotal;
+    document.getElementById("grandTotal").innerHTML = "Grand Total #" + grandTotal;
   }
 }
 
@@ -86,9 +73,7 @@ function toggleDelete(o) {
   p.parentNode.removeChild(p);
   sales.find((s) => {
     if (s.item == o.id) {
-      console.log(s);
       let itemIndex = sales.indexOf(s);
-      console.log(s.total);
       grandTotal -= parseFloat(s.total);
       sales.splice(itemIndex, 1);
       document.getElementById("grandTotal").innerHTML =
@@ -99,20 +84,27 @@ function toggleDelete(o) {
 
 document.getElementById("submitReceipt").addEventListener("click", function () {
   const payment = document.getElementById("payment").value;
-  if (payment) {
+  const customerName = document.getElementById("customerName").value;
+  const phoneNumber = document.getElementById("phoneNumber").value;
+  const address = document.getElementById("address").value;
+
+  if (payment && customerName && phoneNumber && address) {
     fetch("/receipt", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sales, grandTotal, payment }),
+      body: JSON.stringify({
+        sales,
+        grandTotal,
+        payment,
+        customerName,
+        phoneNumber,
+        address,
+      }),
     })
-      .then((response) => {
-        console.log(response);
-        return response.blob();
-      })
+      .then((response) => response.blob())
       .then((data) => {
-        console.log(data);
         var url = window.URL.createObjectURL(data),
           anchor = document.createElement("a");
         anchor.href = url;
@@ -123,9 +115,14 @@ document.getElementById("submitReceipt").addEventListener("click", function () {
         document.querySelector("tbody").innerHTML = "";
         document.getElementById("grandTotal").innerHTML = "";
         document.getElementById("payment").value = "";
+        document.getElementById("customerName").value = "";
+        document.getElementById("phoneNumber").value = "";
+        document.getElementById("address").value = "";
       })
       .catch((error) => {
         console.error("Error:", error);
       });
+  } else {
+    alert("Please fill in all customer details and payment method.");
   }
 });
