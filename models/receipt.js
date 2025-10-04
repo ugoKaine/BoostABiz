@@ -21,21 +21,21 @@ const receiptSchema = new Schema(
     lastname: String,
     firstname: String,
 
-  // Customer info
+    // Customer info (now optional)
     customerName: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     phoneNumber: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     address: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
   },
   { timestamps: true }

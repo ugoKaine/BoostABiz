@@ -88,7 +88,7 @@ document.getElementById("submitReceipt").addEventListener("click", function () {
   const phoneNumber = document.getElementById("phoneNumber").value;
   const address = document.getElementById("address").value;
 
-  if (payment && customerName && phoneNumber && address) {
+  if (payment) {
     fetch("/receipt", {
       method: "POST",
       headers: {
@@ -123,6 +123,6 @@ document.getElementById("submitReceipt").addEventListener("click", function () {
         console.error("Error:", error);
       });
   } else {
-    alert("Please fill in all customer details and payment method.");
+    alert("Please select a payment method.");
   }
 });
