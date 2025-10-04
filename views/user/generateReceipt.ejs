@@ -85,10 +85,125 @@
     </datalist>
 
     <br /><br /><br />
-    <button type="submit" class="btn btn-primary" id="submitReceipt">
-      Generate Receipt
-    </button>
+<button type="submit" class="btn btn-primary" id="submitReceipt" disabled>
+  Generate Receipt
+</button>
+
+
   </div>
 </div>
 
 <script src="/js/receipt.js"></script>
+
+<!-- // Put this at the end of receipt.js
+document.addEventListener("DOMContentLoaded", () => {
+  // Attempt to find either the input+datalist or the old select
+  let productInput = document.getElementById("productInput");
+  let dataList = document.getElementById("productList");
+  const productsSelect = document.getElementById("products"); // if you still have a select
+
+  // Build originalOptions array from whatever exists in the DOM
+  let originalOptions = [];
+
+  if (dataList && dataList.querySelectorAll("option").length) {
+    // datalist already rendered server-side
+    originalOptions = Array.from(dataList.querySelectorAll("option")).map((opt) => ({
+      title: opt.value,
+      price: opt.getAttribute("data-price") || opt.value,
+    }));
+    // empty datalist initially so the box looks empty
+    dataList.innerHTML = "";
+  } else if (productsSelect && productsSelect.options.length) {
+    // fallback if you still have a select: read its options and hide the select
+    originalOptions = Array.from(productsSelect.options).map((opt) => ({
+      title: opt.text,
+      price: opt.value,
+    }));
+    productsSelect.style.display = "none";
+
+    // create input + datalist if not present
+    if (!document.getElementById("productInput")) {
+      const input = document.createElement("input");
+      input.id = "productInput";
+      input.setAttribute("list", "productList");
+      input.placeholder = "Search or select food...";
+      input.autocomplete = "off";
+      productsSelect.parentNode.insertBefore(input, productsSelect);
+    }
+    if (!document.getElementById("productList")) {
+      const dl = document.createElement("datalist");
+      dl.id = "productList";
+      productsSelect.parentNode.insertBefore(dl, productsSelect);
+    }
+
+    productInput = document.getElementById("productInput");
+    dataList = document.getElementById("productList");
+  } else {
+    // nothing found — bail out
+    return;
+  }
+
+  // Helper to populate datalist with given matches
+  function rebuildDatalist(matches) {
+    dataList.innerHTML = "";
+    matches.forEach((p) => {
+      const o = document.createElement("option");
+      o.value = p.title;
+      o.setAttribute("data-price", p.price);
+      dataList.appendChild(o);
+    });
+  }
+
+  // On typing: filter with prefix match (startsWith) — change to .includes for substring matching
+  productInput.addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    if (q.length === 0) {
+      // keep datalist empty initially (box looks empty)
+      dataList.innerHTML = "";
+      document.getElementById("price").value = "";
+      return;
+    }
+
+    // PREFIX match: ensure items start with the typed text
+    const matches = originalOptions.filter((p) =>
+      p.title.toLowerCase().startsWith(q)
+    );
+
+    // If you prefer substring matching (contains) instead, use:
+    // const matches = originalOptions.filter(p => p.title.toLowerCase().includes(q));
+
+    rebuildDatalist(matches);
+
+    // If the input exactly matches a product title, autofill price
+    const exact = originalOptions.find(
+      (p) => p.title.toLowerCase() === q
+    );
+    if (exact) {
+      document.getElementById("price").value = exact.price;
+    } else {
+      document.getElementById("price").value = "";
+    }
+  });
+
+  // When user selects/choses an option (change), ensure price is set if exact match exists
+  productInput.addEventListener("change", (e) => {
+    const val = e.target.value.trim().toLowerCase();
+    const exact = originalOptions.find((p) => p.title.toLowerCase() === val);
+    if (exact) {
+      document.getElementById("price").value = exact.price;
+    }
+  });
+
+  // Optional: when the input is focused and empty, show ALL items in list for quick selection
+  productInput.addEventListener("focus", () => {
+    if (productInput.value.trim().length === 0) {
+      rebuildDatalist(originalOptions);
+    }
+  });
+
+  // Optional: hide suggestions on blur to keep the datalist empty afterwards
+  productInput.addEventListener("blur", () => {
+    // Uncomment to clear suggestions after leaving field:
+    // setTimeout(()=> dataList.innerHTML = "", 200);
+  });
+}); -->

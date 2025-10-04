@@ -1,6 +1,13 @@
 let sales = [];
 let grandTotal = 0;
 
+// ✅ Enable or disable "Generate Receipt" button
+function updateGenerateButtonState() {
+  const btn = document.getElementById("submitReceipt");
+  if (!btn) return;
+  btn.disabled = sales.length === 0;
+}
+
 function updatePriceFromInput() {
   const input = document.getElementById("productInput");
   const selectedValue = input.value.trim();
@@ -23,7 +30,6 @@ function updatePriceFromInput() {
   }
 }
 
-
 function doMath() {
   const numOne = document.getElementById("quantity").value;
   const numTwo = document.querySelector("input[id=price]").value;
@@ -37,10 +43,7 @@ function doMath() {
 
 function saveArray(e) {
   e.preventDefault();
-  // const selectedProduct = document.querySelector("select[id=products]");
-  // const item = selectedProduct.options[selectedProduct.selectedIndex].text;
   const item = document.getElementById("productInput").value.trim();
-
 
   const quantity = parseFloat(document.getElementById("quantity").value);
   const price = parseFloat(document.getElementById("price").value);
@@ -83,8 +86,12 @@ function saveArray(e) {
       tr.innerHTML = content;
       tbody.appendChild(tr);
     });
+
     document.getElementById("total").innerHTML = "";
     document.getElementById("grandTotal").innerHTML = "Grand Total #" + grandTotal;
+
+    // ✅ Enable the button now that there's at least one sale
+    updateGenerateButtonState();
   }
 }
 
@@ -98,15 +105,29 @@ function toggleDelete(o) {
       sales.splice(itemIndex, 1);
       document.getElementById("grandTotal").innerHTML =
         "Grand Total :  #" + grandTotal.toFixed(2);
+
+      // ✅ Disable button if list becomes empty
+      updateGenerateButtonState();
     }
   });
 }
+
+// ✅ Run on page load
+document.addEventListener("DOMContentLoaded", () => {
+  updateGenerateButtonState();
+});
 
 document.getElementById("submitReceipt").addEventListener("click", function () {
   const payment = document.getElementById("payment").value;
   const customerName = document.getElementById("customerName").value;
   const phoneNumber = document.getElementById("phoneNumber").value;
   const address = document.getElementById("address").value;
+
+  // ✅ Prevent clicking when no items are in sales
+  if (sales.length === 0) {
+    alert("Please add at least one item before generating a receipt.");
+    return;
+  }
 
   if (payment) {
     fetch("/receipt", {
@@ -130,6 +151,8 @@ document.getElementById("submitReceipt").addEventListener("click", function () {
         anchor.href = url;
         anchor.target = "_blank";
         anchor.click();
+
+        // ✅ Reset everything
         sales.length = 0;
         grandTotal = 0;
         document.querySelector("tbody").innerHTML = "";
@@ -138,6 +161,9 @@ document.getElementById("submitReceipt").addEventListener("click", function () {
         document.getElementById("customerName").value = "";
         document.getElementById("phoneNumber").value = "";
         document.getElementById("address").value = "";
+
+        // ✅ Disable button again after submission
+        updateGenerateButtonState();
       })
       .catch((error) => {
         console.error("Error:", error);
