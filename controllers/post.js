@@ -42,9 +42,9 @@ console.log("Incoming receipt body:", req.body);
       pdfDoc.text(new Date().toString().substring(0, 25));
       pdfDoc.fontSize(30).text("Boosta Biz", { align: "center" });
       pdfDoc
-        .fontSize(20)
-        .text("Live Healthy & Happily", { align: "center" });
-      pdfDoc
+      //   .fontSize(20)
+      //   .text("Live Healthy & Happily", { align: "center" });
+      // pdfDoc
         .fontSize(20)
         .text("BoostA Biz, Unity Estate Alimosho, Lagos", { align: "center" });
 
@@ -88,8 +88,8 @@ console.log("Incoming receipt body:", req.body);
         });
       // pdfDoc.text("For your Online And Offline Purchase of all products...", {
       //   align: "center",
-      // });
-      pdfDoc.text("Contact Us @ Tel:08109811668 or support@boosta.ng", {
+      // });s
+      pdfDoc.text("Contact Us @ Tel:08109811669 or support@boosta.ng", {
         align: "center",
       });
       pdfDoc.end();
