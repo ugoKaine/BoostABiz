@@ -6,117 +6,112 @@ const User = require("../models/user");
 
 const { validationResult } = require("express-validator");
 
-exports.postReceipt = (req, res, next) => {
-  const role = req.session.user.role;
-  const receiptF = req.body.sales;
-console.log("Incoming receipt body:", req.body);
+exports.postReceipt = async (req, res, next) => {
+  try {
+    const role = req.session.user.role;
+    const receiptF = req.body.sales;
+    console.log("Incoming receipt body:", req.body);
 
-  const receipt = new Receipt({
-    receiptField: req.body.sales,
-    grandTotal: req.body.grandTotal,
-    paymentMethod: req.body.payment,
-    username: req.session.user.username,
-    lastname: req.session.user.lastname,
-    firstname: req.session.user.firstname,
-    customerName: req.body.customerName,
-    phoneNumber: req.body.phoneNumber,
-    address: req.body.address,
-  });
+    // ✅ STEP 1: Validate stock first
+    for (const sale of receiptF) {
+      const product = await Product.findOne({ title: sale.item });
 
-  receipt
-    .save()
-    .then((savedReceipt) => {
-      const invoiceName = "invoice-" + savedReceipt._id + ".pdf";
-      const invoicePath = path.join("./data", "invoices", invoiceName);
-
-      const pdfDoc = new PDFDocument({ margin: 10 });
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        'inline; filename="' + invoiceName + '"'
-      );
-
-      pdfDoc.pipe(res);
-
-      // Header
-      pdfDoc.text(new Date().toString().substring(0, 25));
-      pdfDoc.fontSize(30).text("Boosta Biz", { align: "center" });
-      pdfDoc
-      //   .fontSize(20)
-      //   .text("Live Healthy & Happily", { align: "center" });
-      // pdfDoc
-        .fontSize(20)
-        .text("BoostA Biz, Unity Estate Alimosho, Lagos", { align: "center" });
-
-      // Customer details
-      pdfDoc.moveDown();
-      pdfDoc.fontSize(16).text("Customer Name: " + savedReceipt.customerName);
-      pdfDoc.fontSize(16).text("Phone Number: " + savedReceipt.phoneNumber);
-      pdfDoc.fontSize(16).text("Address: " + savedReceipt.address);
-      pdfDoc.moveDown();
-
-      // Table headers
-      pdfDoc.fontSize(20).text("Item", 10, 200, { width: 190 });
-      pdfDoc.text("Qty", 280, 200, { width: 100 });
-      pdfDoc.text("Price", 330, 200, { width: 100 });
-      pdfDoc.text("Total Price", 410, 200, { width: 190 });
-
-      let productNo = 1;
-      savedReceipt.receiptField.forEach((sale) => {
-        let y = 200 + productNo * 20;
-        pdfDoc.fontSize(15).text(sale.item, 10, y, { width: 250 });
-        pdfDoc.text(sale.quantity, 280, y, { width: 100 });
-        pdfDoc.text(sale.price, 330, y, { width: 100 });
-        pdfDoc.text(sale.total, 410, y, { width: 190 });
-        productNo++;
-      });
-
-      // Grand total
-      pdfDoc
-        .rect(7, 200 + productNo * 30, 560, 0.2)
-        .fillColor("#000")
-        .stroke("#000");
-      productNo++;
-
-      pdfDoc.text("Grand Total:", 310, 210 + productNo * 30).moveDown();
-      pdfDoc.text(savedReceipt.grandTotal, 410, 210 + productNo * 30).moveDown();
-
-      pdfDoc
-        .fontSize(20)
-        .text("Thanks for your patronage!", 0, 300 + productNo * 30, {
-          align: "center",
+      if (!product) {
+        return res.status(400).json({
+          message: `Product "${sale.item}" not found in store.`,
         });
-      // pdfDoc.text("For your Online And Offline Purchase of all products...", {
-      //   align: "center",
-      // });s
-      pdfDoc.text("Contact Us @ Tel:08109811669 or support@boosta.ng", {
+      }
+
+      if (product.quantity < sale.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for "${sale.item}". Only ${product.quantity} left in store.`,
+        });
+      }
+    }
+
+    // ✅ STEP 2: Deduct stock only if all are valid
+    for (const sale of receiptF) {
+      await Product.updateOne(
+        { title: sale.item },
+        { $inc: { quantity: -sale.quantity } }
+      );
+    }
+
+    // ✅ STEP 3: Save the receipt
+    const receipt = new Receipt({
+      receiptField: req.body.sales,
+      grandTotal: req.body.grandTotal,
+      paymentMethod: req.body.payment,
+      username: req.session.user.username,
+      lastname: req.session.user.lastname,
+      firstname: req.session.user.firstname,
+      customerName: req.body.customerName || "",
+      phoneNumber: req.body.phoneNumber || "",
+      address: req.body.address || "",
+    });
+
+    const savedReceipt = await receipt.save();
+
+    // ✅ STEP 4: Generate PDF
+    const invoiceName = "invoice-" + savedReceipt._id + ".pdf";
+    const invoicePath = path.join("./data", "invoices", invoiceName);
+
+    const pdfDoc = new PDFDocument({ margin: 10 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+    pdfDoc.pipe(res);
+
+    pdfDoc.text(new Date().toString().substring(0, 25));
+    pdfDoc.fontSize(30).text("Boosta Biz", { align: "center" });
+    pdfDoc.fontSize(20).text("BoostA Biz, Unity Estate Alimosho, Lagos", { align: "center" });
+
+    // Customer details
+    pdfDoc.moveDown();
+    pdfDoc.fontSize(16).text("Customer Name: " + savedReceipt.customerName);
+    pdfDoc.fontSize(16).text("Phone Number: " + savedReceipt.phoneNumber);
+    pdfDoc.fontSize(16).text("Address: " + savedReceipt.address);
+    pdfDoc.moveDown();
+
+    // Table headers
+    pdfDoc.fontSize(20).text("Item", 10, 200, { width: 190 });
+    pdfDoc.text("Qty", 280, 200, { width: 100 });
+    pdfDoc.text("Price", 330, 200, { width: 100 });
+    pdfDoc.text("Total Price", 410, 200, { width: 190 });
+
+    let productNo = 1;
+    savedReceipt.receiptField.forEach((sale) => {
+      let y = 200 + productNo * 20;
+      pdfDoc.fontSize(15).text(sale.item, 10, y, { width: 250 });
+      pdfDoc.text(sale.quantity, 280, y, { width: 100 });
+      pdfDoc.text(sale.price, 330, y, { width: 100 });
+      pdfDoc.text(sale.total, 410, y, { width: 190 });
+      productNo++;
+    });
+
+    // Grand total
+    pdfDoc
+      .rect(7, 200 + productNo * 30, 560, 0.2)
+      .fillColor("#000")
+      .stroke("#000");
+    productNo++;
+    pdfDoc.text("Grand Total:", 310, 210 + productNo * 30).moveDown();
+    pdfDoc.text(savedReceipt.grandTotal, 410, 210 + productNo * 30).moveDown();
+
+    pdfDoc
+      .fontSize(20)
+      .text("Thanks for your patronage!", 0, 300 + productNo * 30, {
         align: "center",
       });
-      pdfDoc.end();
-
-      // Update stock
-      receiptF.forEach((sale) => {
-        Product.findOne({ title: sale.item })
-          .then((product) => {
-            if (product) {
-              product.quantity -= parseInt(sale.quantity);
-              return product.save();
-            }
-          })
-          .then(() => {
-            console.log("UPDATED PRODUCT!");
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      });
-    })
-    .catch((err) => {
-      console.error("Error saving receipt:", err);
-      res.redirect("/");
+    pdfDoc.text("Contact Us @ Tel:08109811669 or support@boosta.ng", {
+      align: "center",
     });
-};
+    pdfDoc.end();
 
+  } catch (err) {
+    console.error("Error saving receipt:", err);
+    res.status(500).json({ message: "Server error generating receipt" });
+  }
+};
 
 exports.postAddProduct = (req, res, next) => {
   const role = req.session.user.role;
