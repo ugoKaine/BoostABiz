@@ -3,6 +3,8 @@ const PDFDocument = require("pdfkit");
 const Product = require("../models/store");
 const Receipt = require("../models/receipt");
 const User = require("../models/user");
+const HotelRoom = require("../models/HotelRoom");
+
 
 const { validationResult } = require("express-validator");
 
@@ -257,4 +259,55 @@ exports.postDeleteP = (req, res, next) => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+exports.postAddHotelRoom = async (req, res, next) => {
+         const role = req.session.user.role;
+  if (role !== "admin") {
+    req.session.destroy();
+    return res.redirect("/");
+  }
+  try {
+    const { name, price, available } = req.body;
+
+    const room = await HotelRoom.findOne({ name: name });
+
+    if (room) {
+      // Update existing room
+      if (price) room.price = parseFloat(price);
+      if (available !== undefined) room.available = available === "true";
+
+      await room.save();
+      req.flash("success", `Updated hotel room "${name}".`);
+    } else {
+      // Create new room
+      const newRoom = new HotelRoom({
+        name,
+        price: parseFloat(price) || 0,
+        available: available === "true",
+      });
+
+      await newRoom.save();
+      req.flash("success", `Created hotel room "${name}".`);
+    }
+
+    res.redirect("/hotel/rooms");
+  } catch (err) {
+    console.error("Error creating/updating hotel room:", err);
+    req.flash("error", "Failed to create/update hotel room.");
+    res.redirect("/hotel/rooms");
+  }
+};
+
+exports.postDeleteHotelRoom = async (req, res, next) => {
+  try {
+    const { roomId } = req.body;
+    await HotelRoom.findByIdAndRemove(roomId);
+    req.flash("success", "Hotel room deleted successfully.");
+    res.redirect("/hotel/rooms");
+  } catch (err) {
+    console.error("Error deleting hotel room:", err);
+    req.flash("error", "Failed to delete hotel room.");
+    res.redirect("/hotel/rooms");
+  }
 };

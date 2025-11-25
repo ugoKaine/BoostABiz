@@ -1,0 +1,66 @@
+<%- include('../includes/header') %>
+
+<div id="addrooms">
+  <h1>Create/Update Hotel Room</h1>
+  <% if(errorMessage) { %>
+    <div class="user-message"><%= errorMessage %></div>
+  <% } %>
+  
+  <form action="/addroom" class="add" method="post">
+    <label for="name">Room Name</label>
+    <input
+      list="roomData"
+      id="name"
+      name="name"
+      type="text"
+      placeholder="Room name"
+    />
+    <datalist id="roomData">
+      <% for(let i = 0; i < rooms.length; i++){ %>
+        <option value="<%= rooms[i].name %>"></option>
+      <% } %>
+    </datalist>
+
+    <br />
+    <label for="price">Price</label>
+    <input
+      id="price"
+      name="price"
+      type="text"
+      placeholder="Price"
+      autocomplete="off"
+    />
+    <br />
+    <label for="available">Available</label>
+    <select id="available" name="available">
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+    <br />
+    <button type="submit" class="btn btn-primary btn-rooms">
+      Create/Update
+    </button>
+  </form>
+</div>
+
+<table class="product-store">
+  <tr>
+    <td>Room Name</td>
+    <td>Price (#)</td>
+    <td>Available</td>
+    <td>Delete</td>
+  </tr>
+  <% rooms.forEach(function(r) { %>
+    <tr>
+      <td><%= r.name %></td>
+      <td><%= r.price %></td>
+      <td><%= r.available ? "Yes" : "No" %></td>
+      <form action="/deleteroom" method="post">
+        <td>
+          <input type="checkbox" name="checkbox" value="<%= r._id %>" onchange="this.form.submit()" />
+        </td>
+      </form>
+    </tr>
+  <% }) %>
+</table>
+<br>

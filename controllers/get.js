@@ -1,6 +1,8 @@
 const Product = require("../models/store");
 const Receipt = require("../models/receipt");
 const User = require("../models/user");
+const HotelRoom = require("../models/HotelRoom");
+
 
 exports.getStore = (req, res, next) => {
   const role = req.session.user.role;
@@ -113,4 +115,20 @@ exports.getUsers = (req, res, next) => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+
+exports.getHotelRooms = async (req, res, next) => {
+       const role = req.session.user.role;
+  if (role !== "admin") {
+    req.session.destroy();
+    return res.redirect("/");
+  }
+  try {
+    const rooms = await HotelRoom.find().sort({ name: 1 });
+    res.render("admin/rooms", { rooms,role: role, errorMessage: req.flash("error"), successMessage: req.flash("success") });
+  } catch (err) {
+    console.error("Error fetching hotel rooms:", err);
+    res.redirect("/");
+  }
 };

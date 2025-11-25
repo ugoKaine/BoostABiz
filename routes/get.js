@@ -11,5 +11,8 @@ router.get("/products", isAuth, getController.getStore);
 router.get("/sales", isAuth, getController.getSales);
 router.get("/home", isAuth, getController.getHome);
 router.get("/users", isAuth, getController.getUsers);
+// Hotel management
+router.get("/rooms", isAuth, getController.getHotelRooms); // List all rooms
+
 
 module.exports = router;
