@@ -291,11 +291,11 @@ exports.postAddHotelRoom = async (req, res, next) => {
       req.flash("success", `Created hotel room "${name}".`);
     }
 
-    res.redirect("/hotel/rooms");
+    res.redirect("/rooms");
   } catch (err) {
     console.error("Error creating/updating hotel room:", err);
     req.flash("error", "Failed to create/update hotel room.");
-    res.redirect("/hotel/rooms");
+    res.redirect("/rooms");
   }
 };
 
@@ -304,10 +304,10 @@ exports.postDeleteHotelRoom = async (req, res, next) => {
     const { roomId } = req.body;
     await HotelRoom.findByIdAndRemove(roomId);
     req.flash("success", "Hotel room deleted successfully.");
-    res.redirect("/hotel/rooms");
+    res.redirect("/rooms");
   } catch (err) {
     console.error("Error deleting hotel room:", err);
     req.flash("error", "Failed to delete hotel room.");
-    res.redirect("/hotel/rooms");
+    res.redirect("/rooms");
   }
 };
