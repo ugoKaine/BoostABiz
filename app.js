@@ -45,6 +45,8 @@ app.use(express.static("public"));
 const getRoutes = require("./routes/get");
 const postRoutes = require("./routes/post");
 const authRoutes = require("./routes/auth");
+const bookingRoutes = require("./routes/bookingRoutes");
+app.use(bookingRoutes);
 app.use(getRoutes);
 app.use(postRoutes);
 app.use(authRoutes);

@@ -1,0 +1,67 @@
+<%- include('../includes/header'); -%>
+<link rel="stylesheet" href="/css/receipt.css" />
+
+<h2>Bookings</h2>
+<form method="GET" action="/bookings" class="filter-form">
+  <label for="room">Room:</label>
+  <select name="room" id="room">
+    <option value="">-- All Rooms --</option>
+    <% rooms.forEach(r => { %>
+      <option value="<%= r.name %>" <%= filters.room === r.name ? 'selected' : '' %>><%= r.name %></option>
+    <% }) %>
+  </select>
+
+  <label for="customerName">Customer Name:</label>
+  <input type="text" name="customerName" id="customerName" value="<%= filters.customerName || '' %>"/>
+
+  <label for="paymentMethod">Payment Method:</label>
+  <select name="paymentMethod" id="paymentMethod">
+    <option value="">-- All Methods --</option>
+    <option value="Cash" <%= filters.paymentMethod === 'Cash' ? 'selected' : '' %>>Cash</option>
+    <option value="Bank Transfer" <%= filters.paymentMethod === 'Bank Transfer' ? 'selected' : '' %>>Bank Transfer</option>
+    <option value="P.O.S" <%= filters.paymentMethod === 'P.O.S' ? 'selected' : '' %>>P.O.S</option>
+  </select>
+
+  <label for="startDate">Start Date:</label>
+  <input type="date" name="startDate" id="startDate" value="<%= filters.startDate || '' %>"/>
+
+  <label for="endDate">End Date:</label>
+  <input type="date" name="endDate" id="endDate" value="<%= filters.endDate || '' %>"/>
+
+  <button type="submit">Filter</button>
+</form>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Room</th>
+      <th>Customer Name</th>
+      <th>Phone</th>
+      <th>Check-In</th>
+      <th>Check-Out</th>
+      <th>Total Price</th>
+      <th>Payment Method</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if(bookings.length === 0) { %>
+      <tr>
+        <td colspan="8">No bookings found.</td>
+      </tr>
+    <% } else { %>
+      <% bookings.forEach(b => { %>
+        <tr>
+          <td><%= b.room.name %></td>
+          <td><%= b.customerName %></td>
+          <td><%= b.customerPhone %></td>
+          <td><%= b.checkIn.toDateString() %></td>
+          <td><%= b.checkOut.toDateString() %></td>
+          <td>#<%= b.totalPrice.toFixed(2) %></td>
+          <td><%= b.paymentMethod %></td>
+          <td><%= b.paymentStatus %></td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>

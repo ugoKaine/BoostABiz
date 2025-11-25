@@ -17,22 +17,4 @@ router.post("/transactions", isAuth, postController.postTransactions);
 router.post("/delete", isAuth, postController.postDelete);
 router.post("/deleteP", isAuth, postController.postDeleteP);
 
-router.post(
-  "/addroom",
-  [
-    check("name").trim().notEmpty().withMessage("Room name is required"),
-    check("price").trim(),
-    check("available").trim(),
-  ],
-  isAuth,
-  postController.postAddHotelRoom
-);
-
-router.post(
-  "/deleteroom",
-  isAuth,
-  postController.postDeleteHotelRoom
-);
-
-
 module.exports = router;

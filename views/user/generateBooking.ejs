@@ -1,0 +1,232 @@
+<%- include('../includes/header'); -%>
+<link rel="stylesheet" href="/css/receipt.css" />
+
+<div class="split left">
+  <form id="formBooking" action="#">
+    <div class="form-group">
+      <label for="roomInput">Room</label>
+      <input
+        list="roomList"
+        id="roomInput"
+        name="room"
+        placeholder="Search room..."
+        autocomplete="off"
+        oninput="updatePriceFromRoom()"
+      />
+      <datalist id="roomList">
+        <% rooms.forEach(r => { %>
+          <option data-price="<%= r.price %>" value="<%= r.name %>"></option>
+        <% }) %>
+      </datalist>
+    </div>
+
+    <div class="form-group">
+      <label for="guests">Number of Guests</label>
+      <input
+        type="number"
+        name="guests"
+        id="guests"
+        min="1"
+        value="1"
+        oninput="calculateTotal()"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="duration">Duration (days)</label>
+      <input
+        type="number"
+        id="duration"
+        name="duration"
+        min="1"
+        value="1"
+        oninput="calculateTotal()"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="price">Price per Night</label>
+      <input type="number" id="price" name="price" readonly />
+    </div>
+
+    <p id="total">Total price: #0</p>
+    <button id="addBooking" class="btn btn-primary" type="submit" onclick="saveBooking(event)">
+      Add Booking +
+    </button>
+  </form>
+</div>
+
+<div class="split right">
+  <div class="centred">
+    <table>
+      <thead>
+        <tr>
+          <td>Room</td>
+          <td>Guests</td>
+          <td>Duration (days)</td>
+          <td>Price/Night</td>
+          <td>Total Price</td>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <br />
+    <p id="grandTotal"></p>
+
+    <label for="customerName">Customer Name:</label>
+    <input type="text" name="customerName" id="customerName" required />
+    <br />
+    <label for="phoneNumber">Phone Number:</label>
+    <input type="text" name="phoneNumber" id="phoneNumber" required />
+    <br />
+    <label for="payment">Payment Method:</label>
+    <input type="text" list="paymentM" name="payment" id="payment" />
+    <datalist id="paymentM">
+      <option value="Cash"></option>
+      <option value="Bank Transfer"></option>
+      <option value="P.O.S"></option>
+    </datalist>
+
+    <br /><br />
+    <button type="submit" class="btn btn-primary" id="submitBooking" disabled>
+      Generate Booking
+    </button>
+  </div>
+</div>
+
+<script>
+let bookings = [];
+let grandTotal = 0;
+
+function updatePriceFromRoom() {
+  const input = document.getElementById("roomInput");
+  const dataList = document.getElementById("roomList");
+  const options = dataList.getElementsByTagName("option");
+  let matchedPrice = null;
+
+  for (let opt of options) {
+    if (opt.value.toLowerCase() === input.value.trim().toLowerCase()) {
+      matchedPrice = parseFloat(opt.getAttribute("data-price"));
+      break;
+    }
+  }
+
+  document.getElementById("price").value = matchedPrice || 0;
+  calculateTotal();
+}
+
+function calculateTotal() {
+  const price = parseFloat(document.getElementById("price").value) || 0;
+  const duration = parseInt(document.getElementById("duration").value) || 1;
+  const total = price * duration;
+  document.getElementById("total").textContent = `Total price: #${total.toFixed(2)}`;
+}
+
+function saveBooking(e) {
+  e.preventDefault();
+
+  const room = document.getElementById("roomInput").value.trim();
+  const guests = parseInt(document.getElementById("guests").value) || 1;
+  const duration = parseInt(document.getElementById("duration").value) || 1;
+  const price = parseFloat(document.getElementById("price").value) || 0;
+  const total = price * duration;
+
+  if (!room) {
+    alert("Please select a room.");
+    return;
+  }
+
+  const booking = { room, guests, duration, price, total };
+
+  const exists = bookings.find(b => b.room === booking.room);
+  if (exists) {
+    exists.guests += booking.guests;
+    exists.duration = booking.duration; // overwrite with new duration
+    exists.total += booking.total;
+  } else {
+    bookings.push(booking);
+  }
+
+  updateTable();
+  document.getElementById("formBooking").reset();
+  document.getElementById("price").value = "";
+  grandTotal += total;
+  updateGrandTotal();
+  updateGenerateButtonState();
+}
+
+function updateTable() {
+  const tbody = document.querySelector("tbody");
+  tbody.innerHTML = "";
+  bookings.forEach(b => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${b.room}</td>
+      <td>${b.guests}</td>
+      <td>${b.duration}</td>
+      <td>${b.price}</td>
+      <td>${b.total}</td>
+      <td><button type="button" onclick="deleteBooking('${b.room}')">Del</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteBooking(room) {
+  const index = bookings.findIndex(b => b.room === room);
+  if (index !== -1) {
+    grandTotal -= bookings[index].total;
+    bookings.splice(index, 1);
+    updateTable();
+    updateGrandTotal();
+    updateGenerateButtonState();
+  }
+}
+
+function updateGrandTotal() {
+  document.getElementById("grandTotal").textContent = bookings.length ? `Grand Total: #${grandTotal.toFixed(2)}` : "";
+}
+
+function updateGenerateButtonState() {
+  document.getElementById("submitBooking").disabled = bookings.length === 0;
+}
+
+document.getElementById("submitBooking").addEventListener("click", function() {
+  const customerName = document.getElementById("customerName").value.trim();
+  const phoneNumber = document.getElementById("phoneNumber").value.trim();
+  const payment = document.getElementById("payment").value.trim();
+
+  if (!customerName || !phoneNumber || !payment) {
+    alert("Please fill in customer info and payment method");
+    return;
+  }
+
+  fetch("/booking", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bookings, customerName, phoneNumber, payment })
+  })
+  .then(async res => {
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Error creating booking");
+      throw new Error(data.message);
+    }
+    return res.json();
+  })
+  .then(data => {
+    alert("Booking successful!");
+    bookings = [];
+    grandTotal = 0;
+    updateTable();
+    updateGrandTotal();
+    updateGenerateButtonState();
+    document.getElementById("formBooking").reset();
+    document.getElementById("customerName").value = "";
+    document.getElementById("phoneNumber").value = "";
+    document.getElementById("payment").value = "";
+  })
+  .catch(err => console.error(err));
+});
+</script>
