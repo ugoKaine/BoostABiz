@@ -1,29 +1,37 @@
+const path = require("path");
+const PDFDocument = require("pdfkit");
 const Booking = require("../models/Booking");
 const HotelRoom = require("../models/HotelRoom");
 
 exports.postBooking = async (req, res, next) => {
   try {
-    const { bookings, customerName, phoneNumber, payment } = req.body;
+    let { bookings, customerName, phoneNumber, payment } = req.body;
 
-    if (!bookings || bookings.length === 0 || !customerName || !phoneNumber || !payment) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!bookings || !customerName || !phoneNumber || !payment) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    // Parse if bookings is a string (from form submission)
+    if (typeof bookings === "string") {
+      bookings = JSON.parse(bookings);
+    }
+
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+      return res.status(400).send("No bookings found");
     }
 
     let savedBookings = [];
 
     for (const b of bookings) {
       const room = await HotelRoom.findOne({ name: b.room });
-
-      if (!room) return res.status(400).json({ message: `Room ${b.room} not found` });
-      if (!room.available) return res.status(400).json({ message: `Room ${b.room} is not available` });
+      if (!room) return res.status(400).send(`Room ${b.room} not found`);
+      if (!room.available) return res.status(400).send(`Room ${b.room} is not available`);
 
       const newBooking = new Booking({
         room: room._id,
         customerName,
         customerPhone: phoneNumber,
-        customerAddress: "",
         checkIn: new Date(),
-        // checkOut: new Date(Date.now() + b.duration * 24 * 60 * 60 * 1000),
         totalPrice: b.total,
         paymentMethod: payment,
         quantity: 1,
@@ -31,23 +39,60 @@ exports.postBooking = async (req, res, next) => {
         isActive: true,
         checkedInBy: req.session.user.username
       });
-        room.available = false;
-        await room.save();
-        await newBooking.save();
-      savedBookings.push(newBooking);
+
+      room.available = false;
+      await room.save();
+      await newBooking.save();
+      savedBookings.push(await newBooking.populate("room")); // populate room for PDF
     }
 
-    res.status(200).json({
-      message: "Bookings created successfully",
-      bookings: savedBookings
+    // === Generate PDF ===
+    const invoiceName = "booking-" + savedBookings[0]._id + ".pdf";
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+
+    const pdfDoc = new PDFDocument({ margin: 10 });
+    pdfDoc.pipe(res);
+
+    pdfDoc.fontSize(30).text("BoostA Biz Hotel Booking", { align: "center" });
+    pdfDoc.moveDown();
+    pdfDoc.fontSize(16).text("Customer Name: " + customerName);
+    pdfDoc.text("Phone Number: " + phoneNumber);
+    pdfDoc.text("Payment Method: " + payment);
+    pdfDoc.moveDown();
+
+    // Table header
+    pdfDoc.fontSize(18).text("Room Bookings:");
+    pdfDoc.moveDown();
+    pdfDoc.fontSize(14);
+    pdfDoc.text("Room", 50, pdfDoc.y, { continued: true });
+    pdfDoc.text("Price/Night", 200, pdfDoc.y, { continued: true });
+    pdfDoc.text("Total Price", 350, pdfDoc.y);
+    pdfDoc.moveDown();
+
+    // List all bookings
+    savedBookings.forEach((b) => {
+      pdfDoc.text(`${b.room.name}`, 50, pdfDoc.y, { continued: true });
+      pdfDoc.text(`#${b.room.price.toFixed(2)}`, 200, pdfDoc.y, { continued: true });
+      pdfDoc.text(`#${b.totalPrice.toFixed(2)}`, 350, pdfDoc.y);
+      pdfDoc.moveDown();
     });
+
+    const grandTotal = savedBookings.reduce((acc, b) => acc + b.totalPrice, 0);
+    pdfDoc.moveDown();
+    pdfDoc.fontSize(16).text("Grand Total: #" + grandTotal.toFixed(2));
+
+    pdfDoc.moveDown();
+    pdfDoc.fontSize(14).text("Checked in by: " + req.session.user.username);
+    pdfDoc.text("Date: " + new Date().toLocaleString());
+
+    pdfDoc.end();
 
   } catch (err) {
     console.error("Error creating booking:", err);
-    res.status(500).json({ message: "Server error creating booking" });
+    res.status(500).send("Server error creating booking");
   }
 };
-
 
 exports.getBookings = async (req, res, next) => {
   try {

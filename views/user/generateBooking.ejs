@@ -192,7 +192,9 @@ function updateGenerateButtonState() {
   document.getElementById("submitBooking").disabled = bookings.length === 0;
 }
 
-document.getElementById("submitBooking").addEventListener("click", function() {
+document.getElementById("submitBooking").addEventListener("click", function(e) {
+  e.preventDefault();
+
   const customerName = document.getElementById("customerName").value.trim();
   const phoneNumber = document.getElementById("phoneNumber").value.trim();
   const payment = document.getElementById("payment").value.trim();
@@ -202,21 +204,28 @@ document.getElementById("submitBooking").addEventListener("click", function() {
     return;
   }
 
+  // Open new tab for PDF
+  const formData = { bookings, customerName, phoneNumber, payment };
+  
   fetch("/booking", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bookings, customerName, phoneNumber, payment })
+    body: JSON.stringify(formData)
   })
-  .then(async res => {
+  .then(res => {
     if (!res.ok) {
-      const data = await res.json();
-      alert(data.message || "Error creating booking");
-      throw new Error(data.message);
+      return res.json().then(data => {
+        alert(data.message || "Error creating booking");
+        throw new Error(data.message);
+      });
     }
-    return res.json();
+    return res.blob(); // Get PDF as blob
   })
-  .then(data => {
-    alert("Booking successful!");
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank"); // Open PDF in new tab
+
+    // Reset bookings and form
     bookings = [];
     grandTotal = 0;
     updateTable();
@@ -229,4 +238,5 @@ document.getElementById("submitBooking").addEventListener("click", function() {
   })
   .catch(err => console.error(err));
 });
+
 </script>
