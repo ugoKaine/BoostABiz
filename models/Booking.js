@@ -35,7 +35,7 @@ const bookingSchema = new mongoose.Schema(
 
     checkOut: {
       type: Date,
-      required: true,
+      required: false,
     },
 
     totalPrice: {
@@ -65,6 +65,15 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+   checkedInBy: {
+      type: String,
+      required: true
+    },
+
+    checkedOutBy: {
+      type: String,
+      default: null
+    }
   },
   { timestamps: true }
 );

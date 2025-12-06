@@ -3,40 +3,50 @@ const HotelRoom = require("../models/HotelRoom");
 
 exports.postBooking = async (req, res, next) => {
   try {
-    const { roomId, duration, customerName, customerPhone, customerAddress, paymentMethod, quantity } = req.body;
+    const { bookings, customerName, phoneNumber, payment } = req.body;
 
-    if (!roomId || !duration || !customerName || !customerPhone || !paymentMethod) {
+    if (!bookings || bookings.length === 0 || !customerName || !phoneNumber || !payment) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const room = await HotelRoom.findById(roomId);
-    if (!room) return res.status(400).json({ message: "Room not found" });
-    if (!room.available) return res.status(400).json({ message: "Room not available" });
+    let savedBookings = [];
 
-    const totalPrice = room.price * duration * (quantity || 1);
+    for (const b of bookings) {
+      const room = await HotelRoom.findOne({ name: b.room });
 
-    const newBooking = new Booking({
-      room: room._id,
-      customerName,
-      customerPhone,
-      customerAddress: customerAddress || "",
-      checkIn: new Date(),
-      checkOut: new Date(Date.now() + duration * 24 * 60 * 60 * 1000), // auto-calculate
-      totalPrice,
-      paymentMethod,
-      quantity: quantity || 1,
-      paymentStatus: "pending",
-      isActive: true,
+      if (!room) return res.status(400).json({ message: `Room ${b.room} not found` });
+      if (!room.available) return res.status(400).json({ message: `Room ${b.room} is not available` });
+
+      const newBooking = new Booking({
+        room: room._id,
+        customerName,
+        customerPhone: phoneNumber,
+        customerAddress: "",
+        checkIn: new Date(),
+        // checkOut: new Date(Date.now() + b.duration * 24 * 60 * 60 * 1000),
+        totalPrice: b.total,
+        paymentMethod: payment,
+        quantity: 1,
+        paymentStatus: "pending",
+        isActive: true,
+        checkedInBy: req.session.user.username
+      });
+
+      await newBooking.save();
+      savedBookings.push(newBooking);
+    }
+
+    res.status(200).json({
+      message: "Bookings created successfully",
+      bookings: savedBookings
     });
 
-    await newBooking.save();
-
-    res.status(200).json({ message: "Booking successful", booking: newBooking });
   } catch (err) {
     console.error("Error creating booking:", err);
     res.status(500).json({ message: "Server error creating booking" });
   }
 };
+
 
 exports.getBookings = async (req, res, next) => {
   try {
