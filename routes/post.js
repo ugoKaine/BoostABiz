@@ -17,4 +17,12 @@ router.post("/transactions", isAuth, postController.postTransactions);
 router.post("/delete", isAuth, postController.postDelete);
 router.post("/deleteP", isAuth, postController.postDeleteP);
 
+
+router.post(
+  "/deleteroom",
+  isAuth,
+  postController.postDeleteHotelRoom
+);
+router.post("/addroom", isAuth, postController.postAddHotelRoom);
+
 module.exports = router;

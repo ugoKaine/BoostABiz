@@ -31,8 +31,9 @@ exports.postBooking = async (req, res, next) => {
         isActive: true,
         checkedInBy: req.session.user.username
       });
-
-      await newBooking.save();
+        room.available = false;
+        await room.save();
+        await newBooking.save();
       savedBookings.push(newBooking);
     }
 
@@ -121,3 +122,45 @@ exports.getBookingForm = async (req, res, next) => {
     res.redirect("/");
   }
 };
+
+exports.checkoutBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+
+    const booking = await Booking.findById(bookingId).populate("room");
+    if (!booking) return res.status(404).send("Booking not found");
+
+    // Update booking
+    booking.checkOut = new Date();
+    booking.isActive = false;
+    booking.paymentStatus = "paid";
+    booking.checkedOutBy = req.session.user.username;
+
+    await booking.save();
+
+    // Mark room available again
+    booking.room.available = true;
+    await booking.room.save();
+
+    res.redirect("/activeBookings");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Checkout error");
+  }
+};
+
+exports.getActiveBookings = async (req, res) => {
+  try {
+    const activeBookings = await Booking.find({ isActive: true })
+      .populate("room");
+
+    res.render("user/activeBookings", { 
+      activeBookings,
+      role: req.session.user.role 
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error loading active bookings");
+  }
+};
+

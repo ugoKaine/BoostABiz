@@ -25,5 +25,7 @@ router.get("/bookings", isAuth, bookingController.getBookings);
 // GET booking form
 router.get("/booking", isAuth, bookingController.getBookingForm);
 
+router.get("/activeBookings", bookingController.getActiveBookings);
+router.post("/checkout/:id", bookingController.checkoutBooking);
 
 module.exports = router;

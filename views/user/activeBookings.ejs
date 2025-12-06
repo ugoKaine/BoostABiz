@@ -1,0 +1,51 @@
+<%- include('../includes/header'); -%>
+
+<h2>Active Bookings (Checked-In Customers)</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Room</th>
+      <th>Customer Name</th>
+      <th>Phone</th>
+      <th>Check-In</th>
+      <th>Check-Out</th>
+      <th>Total Price</th>
+      <th>Payment Method</th>
+      <th>Status</th>
+      <th>Checked In By</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% if(activeBookings.length === 0) { %>
+      <tr>
+        <td colspan="10">No active check-ins.</td>
+      </tr>
+    <% } else { %>
+      <% activeBookings.forEach(b => { %>
+        <tr>
+          <td><%= b.room.name %></td>
+          <td><%= b.customerName %></td>
+          <td><%= b.customerPhone %></td>
+          <td><%= b.checkIn.toDateString() %></td>
+          <td><%= b.checkOut ? b.checkOut.toDateString() : '' %></td>
+          <td>#<%= b.totalPrice %></td>
+          <td><%= b.paymentMethod %></td>
+          <td><%= b.paymentStatus %></td>
+          <td><%= b.checkedInBy %></td>
+
+          <td>
+            <form action="/checkout/<%= b._id %>" method="POST">
+              <button class="btn btn-danger">Check Out</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+
+</table>
+
+<%- include('../includes/footer'); -%>
