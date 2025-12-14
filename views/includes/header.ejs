@@ -10,6 +10,8 @@
     />
     <link rel="stylesheet" href="/css/header.css" />
   </head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
   <body>
     <nav class="navbar navbar-default">
@@ -19,24 +21,54 @@
         </div>
 
         <ul class="nav navbar-nav navbar-right">
+
+          <!-- Home -->
           <li id="home"><a href="/home">Home</a></li>
-          <li id="receipt"><a href="/receipt">Make Sales</a></li>
-          <li id="hotelbooking"><a href="/booking">Book Room</a></li>
-          <li id="user"><a href="/activeBookings">checkOut</a></li>
 
-          <% if(role==="admin"){ %>
-          <li id="create"><a href="/createuser">Create User</a></li>
-          <li id="sales"><a href="/sales">Sales</a></li>
-          <li id="products"><a href="/products">Products</a></li>
-          <li id="users"><a href="/users">Users</a></li>
+          <!-- SHOP MENU -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              Shop <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li id="receipt"><a href="/receipt">Make Sales</a></li>
 
-          <!-- Hotel management links -->
-          <li id="hotelrooms"><a href="/rooms">Hotel Rooms</a></li>
-           <li id="hotelbooking"><a href="/bookings">Hotel Bookings</a></li>
+              <% if(role === "admin"){ %>
+                <li id="sales"><a href="/sales">Sales</a></li>
+                <li id="products"><a href="/products">Products</a></li>
+              <% } %>
+            </ul>
+          </li>
+
+          <!-- HOTEL MENU -->
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              Hotel <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li id="hotelbooking"><a href="/booking">Book Room</a></li>
+              <li id="checkout"><a href="/activeBookings">Check Out</a></li>
+
+              <% if(role === "admin"){ %>
+                <li class="divider"></li>
+                <li id="hotelrooms"><a href="/rooms">Hotel Rooms</a></li>
+                <li id="hotelbookings"><a href="/bookings">Hotel Bookings</a></li>
+              <% } %>
+            </ul>
+          </li>
+
+          <!-- ADMIN ONLY -->
+          <% if(role === "admin"){ %>
+            <li id="create"><a href="/createuser">Create User</a></li>
+            <li id="users"><a href="/users">Users</a></li>
           <% } %>
 
+          <!-- ACCOUNT -->
           <li id="reset"><a href="/reset">Reset Password</a></li>
-          <a class="btn btn-light btn-lg" href="/logout">Log Out</a>
+          <li>
+            <a class="btn btn-light btn-lg" href="/logout">Log Out</a>
+          </li>
+
         </ul>
       </div>
     </nav>

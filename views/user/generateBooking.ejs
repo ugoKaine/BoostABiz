@@ -137,12 +137,12 @@ function saveBooking(e) {
     return;
   }
 
-  const booking = { room, guests, duration, price, total };
+  const booking = { room, guests, quantity: duration, price, total };
 
   const exists = bookings.find(b => b.room === booking.room);
   if (exists) {
     exists.guests += booking.guests;
-    exists.duration = booking.duration; // overwrite with new duration
+    exists.quantity = booking.quantity; // overwrite with new duration
     exists.total += booking.total;
   } else {
     bookings.push(booking);
@@ -164,7 +164,7 @@ function updateTable() {
     tr.innerHTML = `
       <td>${b.room}</td>
       <td>${b.guests}</td>
-      <td>${b.duration}</td>
+      <td>${b.quantity}</td>
       <td>${b.price}</td>
       <td>${b.total}</td>
       <td><button type="button" onclick="deleteBooking('${b.room}')">Del</button></td>
@@ -225,16 +225,9 @@ document.getElementById("submitBooking").addEventListener("click", function(e) {
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank"); // Open PDF in new tab
 
-    // Reset bookings and form
-    bookings = [];
-    grandTotal = 0;
-    updateTable();
-    updateGrandTotal();
-    updateGenerateButtonState();
-    document.getElementById("formBooking").reset();
-    document.getElementById("customerName").value = "";
-    document.getElementById("phoneNumber").value = "";
-    document.getElementById("payment").value = "";
+  setTimeout(() => {
+    window.location.reload();
+  }, 500); // slight delay to ensure PDF opens
   })
   .catch(err => console.error(err));
 });

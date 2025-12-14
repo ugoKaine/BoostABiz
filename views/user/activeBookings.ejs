@@ -12,7 +12,7 @@
       <th>Check-Out</th>
       <th>Total Price</th>
       <th>Payment Method</th>
-      <th>Status</th>
+      <th>Expected Check-Out Date</th>
       <th>Checked In By</th>
       <th>Action</th>
     </tr>
@@ -29,11 +29,11 @@
           <td><%= b.room.name %></td>
           <td><%= b.customerName %></td>
           <td><%= b.customerPhone %></td>
-          <td><%= b.checkIn.toDateString() %></td>
+          <td><%= new Date(b.checkIn).toLocaleString() %></td>
           <td><%= b.checkOut ? b.checkOut.toDateString() : '' %></td>
           <td>#<%= b.totalPrice %></td>
           <td><%= b.paymentMethod %></td>
-          <td><%= b.paymentStatus %></td>
+          <td><%= new Date(b.expectedCheckOutTime).toLocaleString() %></td>
           <td><%= b.checkedInBy %></td>
 
           <td>

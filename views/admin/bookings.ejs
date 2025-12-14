@@ -11,8 +11,21 @@
     <% }) %>
   </select>
 
-  <label for="customerName">Customer Name:</label>
-  <input type="text" name="customerName" id="customerName" value="<%= filters.customerName || '' %>"/>
+<label for="checkedInBy">Checked In By:</label>
+<select name="checkedInBy" id="checkedInBy">
+  <option value="">-- All Users --</option>
+
+  <% u.forEach(function(username){ %>
+    <option 
+      value="<%= username %>"
+      <%= filters.checkedInBy === username ? 'selected' : '' %>
+    >
+      <%= username %>
+    </option>
+  <% }) %>
+</select>
+
+
 
   <label for="paymentMethod">Payment Method:</label>
   <select name="paymentMethod" id="paymentMethod">

@@ -2,6 +2,7 @@ const path = require("path");
 const PDFDocument = require("pdfkit");
 const Booking = require("../models/Booking");
 const HotelRoom = require("../models/HotelRoom");
+const User = require("../models/user");
 
 exports.postBooking = async (req, res, next) => {
   try {
@@ -27,18 +28,24 @@ exports.postBooking = async (req, res, next) => {
       if (!room) return res.status(400).send(`Room ${b.room} not found`);
       if (!room.available) return res.status(400).send(`Room ${b.room} is not available`);
 
-      const newBooking = new Booking({
-        room: room._id,
-        customerName,
-        customerPhone: phoneNumber,
-        checkIn: new Date(),
-        totalPrice: b.total,
-        paymentMethod: payment,
-        quantity: 1,
-        paymentStatus: "pending",
-        isActive: true,
-        checkedInBy: req.session.user.username
-      });
+      // Calculate expectedCheckOutTime
+  const checkIn = new Date(); // now
+  const expectedCheckOutTime = new Date(checkIn);
+  expectedCheckOutTime.setDate(checkIn.getDate() + (b.quantity || 1)); // add quantity days
+  expectedCheckOutTime.setHours(12, 0, 0, 0); // set time to 12:00:00 PM
+
+  const newBooking = new Booking({
+    room: room._id,
+    customerName,
+    customerPhone: phoneNumber,
+    checkIn:checkIn,
+    totalPrice: b.total,
+    paymentMethod: payment,
+    quantity: b.quantity || 1,
+    expectedCheckOutTime:expectedCheckOutTime, // set here
+    isActive: true,
+    checkedInBy: req.session.user.username
+  });
 
       room.available = false;
       await room.save();
@@ -47,46 +54,80 @@ exports.postBooking = async (req, res, next) => {
     }
 
     // === Generate PDF ===
-    const invoiceName = "booking-" + savedBookings[0]._id + ".pdf";
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+const invoiceName = "booking-" + savedBookings[0]._id + ".pdf";
+res.setHeader("Content-Type", "application/pdf");
+res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
 
-    const pdfDoc = new PDFDocument({ margin: 10 });
-    pdfDoc.pipe(res);
+const pdfDoc = new PDFDocument({ margin: 40 });
+pdfDoc.pipe(res);
 
-    pdfDoc.fontSize(30).text("BoostA Biz Hotel Booking", { align: "center" });
-    pdfDoc.moveDown();
-    pdfDoc.fontSize(16).text("Customer Name: " + customerName);
-    pdfDoc.text("Phone Number: " + phoneNumber);
-    pdfDoc.text("Payment Method: " + payment);
-    pdfDoc.moveDown();
+// ===== HEADER =====
+pdfDoc
+  .fontSize(26)
+  .text("BoostA Biz Hotel Booking", { align: "center" })
+  .moveDown(1);
 
-    // Table header
-    pdfDoc.fontSize(18).text("Room Bookings:");
-    pdfDoc.moveDown();
-    pdfDoc.fontSize(14);
-    pdfDoc.text("Room", 50, pdfDoc.y, { continued: true });
-    pdfDoc.text("Price/Night", 200, pdfDoc.y, { continued: true });
-    pdfDoc.text("Total Price", 350, pdfDoc.y);
-    pdfDoc.moveDown();
+pdfDoc.fontSize(14);
+pdfDoc.text(`Customer Name: ${customerName}`);
+pdfDoc.text(`Phone Number: ${phoneNumber}`);
+pdfDoc.text(`Payment Method: ${payment}`);
+pdfDoc.moveDown(1.5);
 
-    // List all bookings
-    savedBookings.forEach((b) => {
-      pdfDoc.text(`${b.room.name}`, 50, pdfDoc.y, { continued: true });
-      pdfDoc.text(`#${b.room.price.toFixed(2)}`, 200, pdfDoc.y, { continued: true });
-      pdfDoc.text(`#${b.totalPrice.toFixed(2)}`, 350, pdfDoc.y);
-      pdfDoc.moveDown();
-    });
+// ===== TABLE SETUP =====
+const tableTop = pdfDoc.y;
+const rowHeight = 22;
 
-    const grandTotal = savedBookings.reduce((acc, b) => acc + b.totalPrice, 0);
-    pdfDoc.moveDown();
-    pdfDoc.fontSize(16).text("Grand Total: #" + grandTotal.toFixed(2));
+// Column positions
+const colRoom = 50;
+const colPrice = 260;
+const colTotal = 400;
 
-    pdfDoc.moveDown();
-    pdfDoc.fontSize(14).text("Checked in by: " + req.session.user.username);
-    pdfDoc.text("Date: " + new Date().toLocaleString());
+// Header row
+pdfDoc.fontSize(15).text("Room", colRoom, tableTop);
+pdfDoc.text("Price / Night", colPrice, tableTop);
+pdfDoc.text("Total Price", colTotal, tableTop);
 
-    pdfDoc.end();
+// Header underline
+pdfDoc
+  .moveTo(colRoom, tableTop + 18)
+  .lineTo(550, tableTop + 18)
+  .stroke();
+
+// ===== TABLE ROWS =====
+let y = tableTop + rowHeight;
+
+pdfDoc.fontSize(13);
+
+savedBookings.forEach((b) => {
+  pdfDoc.text(b.room.name, colRoom, y);
+  pdfDoc.text(`#${b.room.price.toFixed(2)}`, colPrice, y);
+  pdfDoc.text(`#${b.totalPrice.toFixed(2)}`, colTotal, y);
+  y += rowHeight;
+});
+
+// ===== GRAND TOTAL =====
+const grandTotal = savedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
+
+pdfDoc
+  .moveTo(colRoom, y + 5)
+  .lineTo(550, y + 5)
+  .stroke();
+
+y += 15;
+
+pdfDoc
+  .fontSize(15)
+  .text("Grand Total:", colPrice, y)
+  .text(`#${grandTotal.toFixed(2)}`, colTotal, y);
+
+// ===== FOOTER =====
+pdfDoc.moveDown(2);
+pdfDoc.fontSize(12);
+pdfDoc.text(`Checked in by: ${req.session.user.username}`);
+pdfDoc.text(`Date: ${new Date().toLocaleString()}`);
+
+pdfDoc.end();
+
 
   } catch (err) {
     console.error("Error creating booking:", err);
@@ -104,7 +145,7 @@ exports.getBookings = async (req, res, next) => {
       query.customerPhone = req.session.user.phoneNumber;
     }
 
-    const { room, customerName, paymentMethod, startDate, endDate } = req.query;
+    const { room, checkedInBy, paymentMethod, startDate, endDate } = req.query;
 
     // Fetch all bookings and populate room info
     let bookings = await Booking.find(query)
@@ -115,10 +156,11 @@ exports.getBookings = async (req, res, next) => {
     if (room) {
       bookings = bookings.filter(b => b.room.name === room);
     }
-    if (customerName) {
-      const nameRegex = new RegExp(customerName, "i");
-      bookings = bookings.filter(b => nameRegex.test(b.customerName));
-    }
+ if (checkedInBy) {
+  const userRegex = new RegExp(checkedInBy, "i");
+  bookings = bookings.filter(b => userRegex.test(b.checkedInBy));
+}
+
     if (paymentMethod) {
       bookings = bookings.filter(b => b.paymentMethod === paymentMethod);
     }
@@ -132,12 +174,15 @@ exports.getBookings = async (req, res, next) => {
     }
 
     const rooms = await HotelRoom.find().sort({ name: 1 });
+    const users = await User.find({}, "username").sort({ username: 1 });
+
 
     res.render("admin/bookings", {
       bookings,
       role,
       rooms,
-      filters: { room, customerName, paymentMethod, startDate, endDate },
+        u: users.map(user => user.username), 
+      filters: { room, checkedInBy, paymentMethod, startDate, endDate },
       errorMessage: req.flash("error"),
       successMessage: req.flash("success"),
     });
