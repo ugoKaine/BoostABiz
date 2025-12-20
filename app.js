@@ -11,7 +11,7 @@ const flash = require("connect-flash");
 
 const MONGODB_URI = 
 //"mongodb://localhost:27017/AdminPharmacy";
-"mongodb+srv://ugokaine_db_user:wXeffli6MogpgaJx@cluster0.kaijdyi.mongodb.net/BoostaTechDataBase"
+"mongodb+srv://ugokaine_db_user:wXeffli6MogpgaJx@cluster0.kaijdyi.mongodb.net/BoostaTechDataBase";
 
 // "mongodb+srv://Destiny-Admin:ashley1811@cluster0.dgjqm0d.mongodb.net/AdminPharmacyDB";
 
