@@ -8,25 +8,8 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Customer info
-    customerName: {
-      type: String,
-      trim: true,
-      required: true,
-    },
-
-    customerPhone: {
-      type: String,
-      trim: true,
-      required: true,
-    },
-
-    customerAddress: {
-      type: String,
-      trim: true,
-      required: false,
-      default: "",
-    },
+    customerName: { type: String, required: true },
+    customerPhone: { type: String, required: true },
 
     checkIn: {
       type: Date,
@@ -35,7 +18,7 @@ const bookingSchema = new mongoose.Schema(
 
     checkOut: {
       type: Date,
-      required: false,
+      required: true,
     },
 
     totalPrice: {
@@ -48,31 +31,14 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    quantity: {
-      type: Number,
-      default: 1,
-      min: 1,
-    },
-
-    expectedCheckOutTime: {
-      type: Date,
-      required: true,
-    },
-
-    // Booking status
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-   checkedInBy: {
+    status: {
       type: String,
-      required: true
+      enum: ["booked", "checked-in", "checked-out", "cancelled"],
+      default: "booked",
     },
 
-    checkedOutBy: {
-      type: String,
-      default: null
-    }
+    checkedInBy: String,
+    checkedOutBy: String,
   },
   { timestamps: true }
 );

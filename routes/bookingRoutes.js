@@ -27,5 +27,7 @@ router.get("/booking", isAuth, bookingController.getBookingForm);
 
 router.get("/activeBookings", bookingController.getActiveBookings);
 router.post("/checkout/:id", bookingController.checkoutBooking);
+// GET available rooms for given dates
+router.get("/rooms/available", isAuth, bookingController.getAvailableRooms);
 
 module.exports = router;

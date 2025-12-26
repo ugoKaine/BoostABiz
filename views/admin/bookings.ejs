@@ -11,21 +11,8 @@
     <% }) %>
   </select>
 
-<label for="checkedInBy">Checked In By:</label>
-<select name="checkedInBy" id="checkedInBy">
-  <option value="">-- All Users --</option>
-
-  <% u.forEach(function(username){ %>
-    <option 
-      value="<%= username %>"
-      <%= filters.checkedInBy === username ? 'selected' : '' %>
-    >
-      <%= username %>
-    </option>
-  <% }) %>
-</select>
-
-
+  <label for="customerName">Customer Name:</label>
+  <input type="text" name="customerName" id="customerName" value="<%= filters.customerName || '' %>"/>
 
   <label for="paymentMethod">Payment Method:</label>
   <select name="paymentMethod" id="paymentMethod">
@@ -54,7 +41,6 @@
       <th>Check-Out</th>
       <th>Total Price</th>
       <th>Payment Method</th>
-      <th>Status</th>
       <th>Checked In By</th>
       <th>Checked Out By</th>
     </tr>
@@ -74,7 +60,6 @@
           <td><%= b.checkOut ? b.checkOut.toDateString() : '' %></td>
           <td>#<%= b.totalPrice.toFixed(2) %></td>
           <td><%= b.paymentMethod %></td>
-          <td><%= b.paymentStatus %></td>
             <td><%= b.checkedInBy %></td>
         <td><%= b.checkedOutBy %></td>
         </tr>

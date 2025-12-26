@@ -2,234 +2,192 @@
 <link rel="stylesheet" href="/css/receipt.css" />
 
 <div class="split left">
-  <form id="formBooking" action="#">
+  <form id="formBooking">
     <div class="form-group">
-      <label for="roomInput">Room</label>
-      <input
-        list="roomList"
-        id="roomInput"
-        name="room"
-        placeholder="Search room..."
-        autocomplete="off"
-        oninput="updatePriceFromRoom()"
-      />
-      <datalist id="roomList">
-        <% rooms.forEach(r => { %>
-          <option data-price="<%= r.price %>" value="<%= r.name %>"></option>
-        <% }) %>
-      </datalist>
+      <label for="checkIn">Check-In</label>
+      <input type="date" id="checkIn" required />
+    </div>
+    <div class="form-group">
+      <label for="checkOut">Check-Out</label>
+      <input type="date" id="checkOut" required />
+    </div>
+
+    <div class="form-group">
+      <label for="roomInput">Available Room</label>
+      <select id="roomInput">
+        <option value="">Select dates first</option>
+      </select>
     </div>
 
     <div class="form-group">
       <label for="guests">Number of Guests</label>
-      <input
-        type="number"
-        name="guests"
-        id="guests"
-        min="1"
-        value="1"
-        oninput="calculateTotal()"
-      />
+      <input type="number" id="guests" min="1" value="1" />
     </div>
 
     <div class="form-group">
-      <label for="duration">Duration (days)</label>
-      <input
-        type="number"
-        id="duration"
-        name="duration"
-        min="1"
-        value="1"
-        oninput="calculateTotal()"
-      />
+      <label>Price per Night</label>
+      <input type="number" id="price" readonly />
     </div>
 
-    <div class="form-group">
-      <label for="price">Price per Night</label>
-      <input type="number" id="price" name="price" readonly />
-    </div>
-
-    <p id="total">Total price: #0</p>
-    <button id="addBooking" class="btn btn-primary" type="submit" onclick="saveBooking(event)">
-      Add Booking +
-    </button>
+    <p id="total">Total: #0</p>
+    <button type="submit" class="btn btn-primary" onclick="saveBooking(event)">Add Booking +</button>
   </form>
 </div>
 
 <div class="split right">
-  <div class="centred">
-    <table>
-      <thead>
-        <tr>
-          <td>Room</td>
-          <td>Guests</td>
-          <td>Duration (days)</td>
-          <td>Price/Night</td>
-          <td>Total Price</td>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <td>Room</td>
+        <td>Guests</td>
+        <td>Nights</td>
+        <td>Price/Night</td>
+        <td>Total</td>
+        <td>Action</td>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <br />
-    <p id="grandTotal"></p>
+  <p id="grandTotal"></p>
 
-    <label for="customerName">Customer Name:</label>
-    <input type="text" name="customerName" id="customerName" required />
-    <br />
-    <label for="phoneNumber">Phone Number:</label>
-    <input type="text" name="phoneNumber" id="phoneNumber" required />
-    <br />
-    <label for="payment">Payment Method:</label>
-    <input type="text" list="paymentM" name="payment" id="payment" />
-    <datalist id="paymentM">
-      <option value="Cash"></option>
-      <option value="Bank Transfer"></option>
-      <option value="P.O.S"></option>
-    </datalist>
+  <label>Customer Name:</label>
+  <input type="text" id="customerName" required />
+  <label>Phone Number:</label>
+  <input type="text" id="phoneNumber" required />
+  <label>Payment Method:</label>
+  <input list="paymentList" id="payment" required />
+  <datalist id="paymentList">
+    <option value="Cash"></option>
+    <option value="Bank Transfer"></option>
+    <option value="P.O.S"></option>
+  </datalist>
 
-    <br /><br />
-    <button type="submit" class="btn btn-primary" id="submitBooking" disabled>
-      Generate Booking
-    </button>
-  </div>
+  <button id="submitBooking" disabled class="btn btn-primary">Generate Booking</button>
 </div>
 
 <script>
 let bookings = [];
 let grandTotal = 0;
 
-function updatePriceFromRoom() {
-  const input = document.getElementById("roomInput");
-  const dataList = document.getElementById("roomList");
-  const options = dataList.getElementsByTagName("option");
-  let matchedPrice = null;
+const roomInput = document.getElementById('roomInput');
+const checkInInput = document.getElementById('checkIn');
+const checkOutInput = document.getElementById('checkOut');
+const priceInput = document.getElementById('price');
+const guestsInput = document.getElementById('guests');
 
-  for (let opt of options) {
-    if (opt.value.toLowerCase() === input.value.trim().toLowerCase()) {
-      matchedPrice = parseFloat(opt.getAttribute("data-price"));
-      break;
-    }
+async function fetchAvailableRooms() {
+  if (!checkInInput.value || !checkOutInput.value) {
+    roomInput.innerHTML = '<option value="">Select dates first</option>';
+    return;
   }
 
-  document.getElementById("price").value = matchedPrice || 0;
+  try {
+    const res = await fetch(`/rooms/available?checkIn=${checkInInput.value}&checkOut=${checkOutInput.value}`);
+    if (!res.ok) throw new Error('Failed to fetch rooms');
+    const rooms = await res.json();
+
+    roomInput.innerHTML = ''; // clear previous options
+    if (rooms.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No rooms available';
+      roomInput.appendChild(opt);
+      return;
+    }
+
+    rooms.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.name;
+      opt.dataset.price = r.price;
+      opt.textContent = `${r.name} - ₦${r.price}`;
+      roomInput.appendChild(opt);
+    });
+
+    updatePrice(); // update price if a room is selected
+  } catch (err) {
+    console.error(err);
+    roomInput.innerHTML = '<option value="">Error loading rooms</option>';
+  }
+}
+
+
+function updatePrice() {
+  const selected = roomInput.selectedOptions[0];
+  if (selected) priceInput.value = selected.dataset.price || 0;
   calculateTotal();
 }
 
 function calculateTotal() {
-  const price = parseFloat(document.getElementById("price").value) || 0;
-  const duration = parseInt(document.getElementById("duration").value) || 1;
-  const total = price * duration;
-  document.getElementById("total").textContent = `Total price: #${total.toFixed(2)}`;
+  const nights = Math.ceil((new Date(checkOutInput.value) - new Date(checkInInput.value)) / (1000*60*60*24));
+  const total = (parseFloat(priceInput.value) || 0) * (nights || 0);
+  document.getElementById('total').textContent = `Total: #${total.toFixed(2)}`;
 }
 
 function saveBooking(e) {
   e.preventDefault();
+  const roomName = roomInput.value;
+  const guests = parseInt(guestsInput.value) || 1;
+  const nights = Math.ceil((new Date(checkOutInput.value) - new Date(checkInInput.value)) / (1000*60*60*24));
+  const price = parseFloat(priceInput.value);
+  const total = price * nights;
 
-  const room = document.getElementById("roomInput").value.trim();
-  const guests = parseInt(document.getElementById("guests").value) || 1;
-  const duration = parseInt(document.getElementById("duration").value) || 1;
-  const price = parseFloat(document.getElementById("price").value) || 0;
-  const total = price * duration;
+  if (!roomName || !checkInInput.value || !checkOutInput.value) return alert('Fill room & dates');
 
-  if (!room) {
-    alert("Please select a room.");
-    return;
-  }
-
-  const booking = { room, guests, quantity: duration, price, total };
-
-  const exists = bookings.find(b => b.room === booking.room);
-  if (exists) {
-    exists.guests += booking.guests;
-    exists.quantity = booking.quantity; // overwrite with new duration
-    exists.total += booking.total;
-  } else {
-    bookings.push(booking);
-  }
+  const exists = bookings.find(b => b.room === roomName);
+  if (exists) { exists.guests += guests; exists.total += total; } 
+  else bookings.push({ room: roomName, guests, nights, price, total });
 
   updateTable();
-  document.getElementById("formBooking").reset();
-  document.getElementById("price").value = "";
-  grandTotal += total;
-  updateGrandTotal();
-  updateGenerateButtonState();
+  resetLeftForm();
 }
 
 function updateTable() {
-  const tbody = document.querySelector("tbody");
-  tbody.innerHTML = "";
+  const tbody = document.querySelector('tbody');
+  tbody.innerHTML = '';
+  grandTotal = 0;
   bookings.forEach(b => {
-    const tr = document.createElement("tr");
+    grandTotal += b.total;
+    const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${b.room}</td>
       <td>${b.guests}</td>
-      <td>${b.quantity}</td>
+      <td>${b.nights}</td>
       <td>${b.price}</td>
       <td>${b.total}</td>
       <td><button type="button" onclick="deleteBooking('${b.room}')">Del</button></td>
     `;
     tbody.appendChild(tr);
   });
+  document.getElementById('grandTotal').textContent = bookings.length ? `Grand Total: #${grandTotal.toFixed(2)}` : '';
+  document.getElementById('submitBooking').disabled = bookings.length === 0;
 }
 
 function deleteBooking(room) {
   const index = bookings.findIndex(b => b.room === room);
-  if (index !== -1) {
-    grandTotal -= bookings[index].total;
-    bookings.splice(index, 1);
-    updateTable();
-    updateGrandTotal();
-    updateGenerateButtonState();
-  }
+  if (index !== -1) { bookings.splice(index, 1); updateTable(); }
 }
 
-function updateGrandTotal() {
-  document.getElementById("grandTotal").textContent = bookings.length ? `Grand Total: #${grandTotal.toFixed(2)}` : "";
+function resetLeftForm() {
+  roomInput.value = ''; guestsInput.value = 1; priceInput.value = ''; document.getElementById('total').textContent = 'Total: #0';
 }
 
-function updateGenerateButtonState() {
-  document.getElementById("submitBooking").disabled = bookings.length === 0;
-}
+checkInInput.addEventListener('change', fetchAvailableRooms);
+checkOutInput.addEventListener('change', fetchAvailableRooms);
+roomInput.addEventListener('change', updatePrice);
 
-document.getElementById("submitBooking").addEventListener("click", function(e) {
+document.getElementById('submitBooking').addEventListener('click', async e => {
   e.preventDefault();
+  const customerName = document.getElementById('customerName').value.trim();
+  const phoneNumber = document.getElementById('phoneNumber').value.trim();
+  const payment = document.getElementById('payment').value.trim();
+  if (!customerName || !phoneNumber || !payment) return alert('Fill customer info');
 
-  const customerName = document.getElementById("customerName").value.trim();
-  const phoneNumber = document.getElementById("phoneNumber").value.trim();
-  const payment = document.getElementById("payment").value.trim();
-
-  if (!customerName || !phoneNumber || !payment) {
-    alert("Please fill in customer info and payment method");
-    return;
-  }
-
-  // Open new tab for PDF
-  const formData = { bookings, customerName, phoneNumber, payment };
-  
-  fetch("/booking", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData)
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(data => {
-        alert(data.message || "Error creating booking");
-        throw new Error(data.message);
-      });
-    }
-    return res.blob(); // Get PDF as blob
-  })
-  .then(blob => {
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank"); // Open PDF in new tab
-
-  setTimeout(() => {
-    window.location.reload();
-  }, 500); // slight delay to ensure PDF opens
-  })
-  .catch(err => console.error(err));
+  const payload = { bookings, customerName, phoneNumber, payment, checkIn: checkInInput.value, checkOut: checkOutInput.value };
+  const res = await fetch('/booking', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  if (!res.ok) { const txt = await res.text(); return alert(txt); }
+  const blob = await res.blob();
+  window.open(URL.createObjectURL(blob), '_blank');
+  setTimeout(()=>window.location.reload(), 500);
 });
-
 </script>
