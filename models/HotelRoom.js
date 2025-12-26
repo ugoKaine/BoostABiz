@@ -6,6 +6,7 @@ const hotelRoomSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
 
     price: {
@@ -13,17 +14,15 @@ const hotelRoomSchema = new mongoose.Schema(
       required: true,
     },
 
-    available: {
-      type: Boolean,
-      default: true, // Room starts as available
-    }
+    capacity: {
+      type: Number,
+      default: 2, // optional but useful
+    },
 
-    // // Optional: link to a shop
-    // shop: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Shop",
-    //   required: true, // If each shop has its own set of rooms
-    // }
+    description: {
+      type: String,
+      default: "",
+    }
   },
   { timestamps: true }
 );

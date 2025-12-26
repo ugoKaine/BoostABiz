@@ -4,133 +4,119 @@ const Booking = require("../models/Booking");
 const HotelRoom = require("../models/HotelRoom");
 const User = require("../models/user");
 
-exports.postBooking = async (req, res, next) => {
+const calculateDays = (start, end) => Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+const normalizeCheckIn = (date) => { date.setHours(12,0,0,0); return date; };
+const normalizeCheckOut = (date) => { date.setHours(12,0,0,0); return date; };
+
+exports.postBooking = async (req, res) => {
   try {
     let { bookings, customerName, phoneNumber, payment } = req.body;
 
-    if (!bookings || !customerName || !phoneNumber || !payment) {
-      return res.status(400).send("Missing required fields");
+    if (!bookings || !Array.isArray(bookings) || bookings.length === 0) {
+      return res.status(400).send("No bookings submitted");
     }
 
-    // Parse if bookings is a string (from form submission)
-    if (typeof bookings === "string") {
-      bookings = JSON.parse(bookings);
+    if (!customerName || !phoneNumber || !payment) {
+      return res.status(400).send("Missing customer info or payment");
     }
 
-    if (!Array.isArray(bookings) || bookings.length === 0) {
-      return res.status(400).send("No bookings found");
-    }
-
-    let savedBookings = [];
+    const savedBookings = [];
 
     for (const b of bookings) {
-      const room = await HotelRoom.findOne({ name: b.room });
-      if (!room) return res.status(400).send(`Room ${b.room} not found`);
-      if (!room.available) return res.status(400).send(`Room ${b.room} is not available`);
+  const { room: roomName } = b;
+  const { checkIn, checkOut } = req.body;
 
-      // Calculate expectedCheckOutTime
-  const checkIn = new Date(); // now
-  const expectedCheckOutTime = new Date(checkIn);
-  expectedCheckOutTime.setDate(checkIn.getDate() + (b.quantity || 1)); // add quantity days
-  expectedCheckOutTime.setHours(12, 0, 0, 0); // set time to 12:00:00 PM
+  if (!roomName || !checkIn || !checkOut) {
+    return res.status(400).send("Missing room or dates");
+  }
 
-  const newBooking = new Booking({
+  const room = await HotelRoom.findOne({ name: roomName });
+  if (!room) {
+    return res.status(404).send(`Room ${roomName} not found`);
+  }
+
+  const normalizedCheckIn = normalizeCheckIn(new Date(checkIn));
+  const normalizedCheckOut = normalizeCheckOut(new Date(checkOut));
+
+  if (normalizedCheckOut <= normalizedCheckIn) {
+    return res.status(400).send("Check-out must be after check-in");
+  }
+
+  // 🔴 Availability check
+  const conflict = await Booking.findOne({
+    room: room._id,
+    status: { $in: ["booked", "checked-in"] },
+    checkIn: { $lt: normalizedCheckOut },
+    checkOut: { $gt: normalizedCheckIn }
+  });
+
+  if (conflict) {
+    return res
+      .status(400)
+      .send(`Room ${roomName} is not available for selected dates`);
+  }
+
+  const nights = calculateDays(normalizedCheckIn, normalizedCheckOut);
+  const totalPrice = nights * room.price;
+
+  const booking = new Booking({
     room: room._id,
     customerName,
     customerPhone: phoneNumber,
-    checkIn:checkIn,
-    totalPrice: b.total,
+    checkIn: normalizedCheckIn,
+    checkOut: normalizedCheckOut,
+    totalPrice,
     paymentMethod: payment,
-    quantity: b.quantity || 1,
-    expectedCheckOutTime:expectedCheckOutTime, // set here
-    isActive: true,
+    status: "booked",
     checkedInBy: req.session.user.username
   });
 
-      room.available = false;
-      await room.save();
-      await newBooking.save();
-      savedBookings.push(await newBooking.populate("room")); // populate room for PDF
-    }
+  await booking.save();
+  savedBookings.push(await booking.populate("room"));
+}
 
-    // === Generate PDF ===
-const invoiceName = "booking-" + savedBookings[0]._id + ".pdf";
-res.setHeader("Content-Type", "application/pdf");
-res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
 
-const pdfDoc = new PDFDocument({ margin: 40 });
-pdfDoc.pipe(res);
+    // Generate PDF (like before)
+    const pdfDoc = new PDFDocument({ margin: 40 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="booking.pdf"`);
+    pdfDoc.pipe(res);
 
-// ===== HEADER =====
-pdfDoc
-  .fontSize(26)
-  .text("BoostA Biz Hotel Booking", { align: "center" })
-  .moveDown(1);
+    pdfDoc.fontSize(26).text("BoostA Biz Hotel Booking", { align: "center" }).moveDown(1);
+    pdfDoc.fontSize(14);
+    pdfDoc.text(`Customer Name: ${customerName}`);
+    pdfDoc.text(`Phone Number: ${phoneNumber}`);
+    pdfDoc.text(`Payment Method: ${payment}`);
+    pdfDoc.moveDown(1.5);
 
-pdfDoc.fontSize(14);
-pdfDoc.text(`Customer Name: ${customerName}`);
-pdfDoc.text(`Phone Number: ${phoneNumber}`);
-pdfDoc.text(`Payment Method: ${payment}`);
-pdfDoc.moveDown(1.5);
+    const tableTop = pdfDoc.y;
+    const colRoom = 50, colPrice = 260, colTotal = 400;
+    pdfDoc.fontSize(15).text("Room", colRoom, tableTop);
+    pdfDoc.text("Price/Night", colPrice, tableTop);
+    pdfDoc.text("Total Price", colTotal, tableTop);
+    pdfDoc.moveTo(colRoom, tableTop + 18).lineTo(550, tableTop + 18).stroke();
 
-// ===== TABLE SETUP =====
-const tableTop = pdfDoc.y;
-const rowHeight = 22;
+    let y = tableTop + 22;
+    pdfDoc.fontSize(13);
+    savedBookings.forEach(b => {
+      pdfDoc.text(b.room.name, colRoom, y);
+      pdfDoc.text(`#${b.room.price.toFixed(2)}`, colPrice, y);
+      pdfDoc.text(`#${b.totalPrice.toFixed(2)}`, colTotal, y);
+      y += 22;
+    });
 
-// Column positions
-const colRoom = 50;
-const colPrice = 260;
-const colTotal = 400;
+    const grandTotal = savedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
+    pdfDoc.moveTo(colRoom, y + 5).lineTo(550, y + 5).stroke();
+    y += 15;
+    pdfDoc.fontSize(15).text("Grand Total:", colPrice, y).text(`#${grandTotal.toFixed(2)}`, colTotal, y);
 
-// Header row
-pdfDoc.fontSize(15).text("Room", colRoom, tableTop);
-pdfDoc.text("Price / Night", colPrice, tableTop);
-pdfDoc.text("Total Price", colTotal, tableTop);
-
-// Header underline
-pdfDoc
-  .moveTo(colRoom, tableTop + 18)
-  .lineTo(550, tableTop + 18)
-  .stroke();
-
-// ===== TABLE ROWS =====
-let y = tableTop + rowHeight;
-
-pdfDoc.fontSize(13);
-
-savedBookings.forEach((b) => {
-  pdfDoc.text(b.room.name, colRoom, y);
-  pdfDoc.text(`#${b.room.price.toFixed(2)}`, colPrice, y);
-  pdfDoc.text(`#${b.totalPrice.toFixed(2)}`, colTotal, y);
-  y += rowHeight;
-});
-
-// ===== GRAND TOTAL =====
-const grandTotal = savedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
-
-pdfDoc
-  .moveTo(colRoom, y + 5)
-  .lineTo(550, y + 5)
-  .stroke();
-
-y += 15;
-
-pdfDoc
-  .fontSize(15)
-  .text("Grand Total:", colPrice, y)
-  .text(`#${grandTotal.toFixed(2)}`, colTotal, y);
-
-// ===== FOOTER =====
-pdfDoc.moveDown(2);
-pdfDoc.fontSize(12);
-pdfDoc.text(`Checked in by: ${req.session.user.username}`);
-pdfDoc.text(`Date: ${new Date().toLocaleString()}`);
-
-pdfDoc.end();
-
+    pdfDoc.moveDown(2);
+    pdfDoc.fontSize(12).text(`Checked in by: ${req.session.user.username}`);
+    pdfDoc.text(`Date: ${new Date().toLocaleString()}`);
+    pdfDoc.end();
 
   } catch (err) {
-    console.error("Error creating booking:", err);
+    console.error(err);
     res.status(500).send("Server error creating booking");
   }
 };
@@ -212,45 +198,55 @@ exports.getBookingForm = async (req, res, next) => {
     res.redirect("/");
   }
 };
-
 exports.checkoutBooking = async (req, res) => {
   try {
-    const bookingId = req.params.id;
-
-    const booking = await Booking.findById(bookingId).populate("room");
+    const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).send("Booking not found");
 
-    // Update booking
-    booking.checkOut = new Date();
-    booking.isActive = false;
-    booking.paymentStatus = "paid";
+    booking.status = "checked-out";
     booking.checkedOutBy = req.session.user.username;
 
     await booking.save();
 
-    // Mark room available again
-    booking.room.available = true;
-    await booking.room.save();
-
     res.redirect("/activeBookings");
   } catch (err) {
-    console.log(err);
-    res.status(500).send("Checkout error");
+    console.error(err);
+    res.status(500).send("Checkout failed");
   }
 };
 
 exports.getActiveBookings = async (req, res) => {
   try {
-    const activeBookings = await Booking.find({ isActive: true })
-      .populate("room");
+    const activeBookings = await Booking.find({
+      status: { $in: ["booked", "checked-in"] }
+    }).populate("room");
 
-    res.render("user/activeBookings", { 
+    res.render("user/activeBookings", {
       activeBookings,
-      role: req.session.user.role 
+      role: req.session.user.role
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send("Error loading active bookings");
   }
+};
+
+exports.getAvailableRooms = async (req, res) => {
+  const { checkIn, checkOut } = req.query;
+  if (!checkIn || !checkOut) return res.json([]);
+
+  const normalizedCheckIn = new Date(checkIn);
+  normalizedCheckIn.setHours(12,0,0,0);
+  const normalizedCheckOut = new Date(checkOut);
+  normalizedCheckOut.setHours(12,0,0,0);
+
+  const bookedRooms = await Booking.find({
+    status: { $in: ["booked", "checked-in"] },
+    checkIn: { $lt: normalizedCheckOut },
+    checkOut: { $gt: normalizedCheckIn }
+  }).distinct("room");
+
+  const availableRooms = await HotelRoom.find({ _id: { $nin: bookedRooms } });
+  res.json(availableRooms);
 };
 
