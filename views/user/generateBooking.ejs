@@ -35,36 +35,47 @@
 </div>
 
 <div class="split right">
-  <table>
-    <thead>
-      <tr>
-        <td>Room</td>
-        <td>Guests</td>
-        <td>Nights</td>
-        <td>Price/Night</td>
-        <td>Total</td>
-        <td>Action</td>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="right-content">
+    <table>
+      <thead>
+        <tr>
+          <td>Room</td>
+          <td>Guests</td>
+          <td>Nights</td>
+          <td>Price/Night</td>
+          <td>Total</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <p id="grandTotal"></p>
+    <p id="grandTotal"></p>
 
-  <label>Customer Name:</label>
-  <input type="text" id="customerName" required />
-  <label>Phone Number:</label>
-  <input type="text" id="phoneNumber" required />
-  <label>Payment Method:</label>
-  <input list="paymentList" id="payment" required />
-  <datalist id="paymentList">
-    <option value="Cash"></option>
-    <option value="Bank Transfer"></option>
-    <option value="P.O.S"></option>
-  </datalist>
+    <div class="form-group">
+      <label for="customerName">Customer Name</label>
+      <input type="text" id="customerName" required />
+    </div>
 
-  <button id="submitBooking" disabled class="btn btn-primary">Generate Booking</button>
+    <div class="form-group">
+      <label for="phoneNumber">Phone Number</label>
+      <input type="text" id="phoneNumber" required />
+    </div>
+
+    <div class="form-group">
+      <label for="payment">Payment Method</label>
+      <input list="paymentList" id="payment" required />
+      <datalist id="paymentList">
+        <option value="Cash"></option>
+        <option value="Bank Transfer"></option>
+        <option value="P.O.S"></option>
+      </datalist>
+    </div>
+
+    <button id="submitBooking" disabled class="btn btn-primary">Generate Booking</button>
+  </div>
 </div>
+
 
 <script>
 let bookings = [];
@@ -155,7 +166,7 @@ function updateTable() {
       <td>${b.nights}</td>
       <td>${b.price}</td>
       <td>${b.total}</td>
-      <td><button type="button" onclick="deleteBooking('${b.room}')">Del</button></td>
+      <td><button type="button" class="delBtn" onclick="deleteBooking('${b.room}')">Del</button></td>
     `;
     tbody.appendChild(tr);
   });
