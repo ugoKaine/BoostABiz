@@ -100,9 +100,10 @@ button {
   width: 140px;
   text-align: right;
 }
-.delbtn {
-  width: 20px;
-  height: 15px;
+.delBtn {
+  background-color: red;
+  width: 40px;
+  height: 35px;
   margin-left: auto;
 }
 #total {
@@ -112,4 +113,3 @@ select{
   width: 20%;
   padding-top: 20px;
 }
-

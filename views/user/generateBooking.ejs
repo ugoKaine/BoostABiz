@@ -59,7 +59,7 @@
 
     <div class="form-group">
       <label for="phoneNumber">Phone Number</label>
-      <input type="text" id="phoneNumber" required />
+      <input type="tel" pattern="^(?:\+234|234|0)?[789]\d{9}$" oninput="this.value = this.value.replace(/[^0-9+]/g, '')" inputmode="numeric" id="phoneNumber" required />
     </div>
 
     <div class="form-group">
