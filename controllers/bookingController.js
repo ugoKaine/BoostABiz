@@ -150,15 +150,23 @@ exports.getBookings = async (req, res, next) => {
     if (paymentMethod) {
       bookings = bookings.filter(b => b.paymentMethod === paymentMethod);
     }
-    if (startDate) {
-      bookings = bookings.filter(b => b.createdAt >= new Date(startDate));
-    }
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      bookings = bookings.filter(b => b.createdAt <= end);
-    }
+    if (startDate || endDate) {
+  const start = startDate ? new Date(startDate) : null;
+  const end = endDate ? new Date(endDate) : null;
 
+  if (start) start.setHours(0, 0, 0, 0);
+  if (end) end.setHours(23, 59, 59, 999);
+
+  bookings = bookings.filter(b => {
+    const checkIn = new Date(b.checkIn);
+    const checkOut = new Date(b.checkOut);
+
+    return (
+      (!start || checkOut >= start) &&
+      (!end || checkIn <= end)
+    );
+  });
+}
     const rooms = await HotelRoom.find().sort({ name: 1 });
     const users = await User.find({}, "username").sort({ username: 1 });
 
