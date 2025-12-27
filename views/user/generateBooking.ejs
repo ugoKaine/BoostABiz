@@ -197,8 +197,16 @@ document.getElementById('submitBooking').addEventListener('click', async e => {
   const payload = { bookings, customerName, phoneNumber, payment, checkIn: checkInInput.value, checkOut: checkOutInput.value };
   const res = await fetch('/booking', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
   if (!res.ok) { const txt = await res.text(); return alert(txt); }
-  const blob = await res.blob();
-  window.open(URL.createObjectURL(blob), '_blank');
-  setTimeout(()=>window.location.reload(), 500);
+const blob = await res.blob();
+const url = URL.createObjectURL(blob);
+
+// Open receipt
+window.open(url, '_blank');
+
+// Refresh page when user comes back
+window.onfocus = () => {
+  window.location.reload();
+};
+
 });
 </script>
